@@ -1,0 +1,87 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+
+
+class Utilisateur {
+ identifiant
+ indiceSanté
+ aRécupéré
+seConnecter()
+seDéconnecter()
+}
+
+
+
+class Donnee{
+ effacerDonnee()
+ entrerDonnee()
+}
+class Indice{
+valeur
+valeurMoyenne
+calculer()
+}
+
+Indice - Donnee
+
+class DonneeBiologique{
+age
+sexe
+taille
+poids
+calories
+
+}
+class DonneeQuotidienne{
+sommeil
+hydratation?
+Calorie-consommation
+Stress
+activitéPhysique
+pas
+
+}
+
+Donnee <|-- DonneeBiologique
+Donnee <|-- DonneeQuotidienne
+
+
+
+
+
+
+class IndiceSommeil
+class IndiceHydratation
+class IndiceCalorie
+class IndiceStress
+class IndiceActPhys
+class IndicePas
+
+
+Indice<|-- IndiceSommeil
+Indice<|-- IndiceHydratation
+Indice<|-- IndiceCalorie
+Indice<|-- IndiceStress
+Indice<|-- IndiceActPhys
+Indice<|-- IndicePas
+
+class Entrainement{
+description
+date
+intensite
+duree
+listeExercice
+}
+class AnalyseStats
+AnalyseStats - Donnee
+
+
+
+
+
+
+
+
+
+@enduml
