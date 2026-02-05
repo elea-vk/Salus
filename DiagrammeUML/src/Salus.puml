@@ -2,17 +2,66 @@
 'https://plantuml.com/sequence-diagram
 
 
-
 class Utilisateur {
- identifiant
- indiceSanté
- aRécupéré
+mail : String
+identifiant : String
+motDePasse : String
+
+profil : Profil
+
 seConnecter()
 seDéconnecter()
 }
-class test {
-test
+
+class Profil {
+taille : float
+poids : float
+sexe : String
+age : int
+caloriesNecessaires : float
+
+ aRécupéré
+ indiceSanté
+
 }
+
+abstract class  DonneeQuotidienne {
+}
+class Sommeil {}
+DonneeQuotidienne <|-- Sommeil
+
+class Hydratation {}
+DonneeQuotidienne <|-- Hydratation
+
+class Stress {}
+DonneeQuotidienne <|--Stress
+
+class Pas {}
+DonneeQuotidienne <|--Pas
+
+class activitePhysique {}
+DonneeQuotidienne <|--activitePhysique
+
+class caloriesConsommation {}
+DonneeQuotidienne <|-- caloriesConsommation
+
+
+abstract class DonneeBiologique{}
+
+class age {}
+DonneeBiologique <|-- age
+
+class taille
+DonneeBiologique <--- taille
+
+class sexe {}
+DonneeBiologique <|--sexe
+
+class poids {}
+DonneeBiologique <|-- poids
+
+class caloriesNecessaires {}
+DonneeBiologique <|-- caloriesNecessaires
 
 
 
@@ -26,33 +75,8 @@ valeurMoyenne
 calculer()
 }
 
-Indice - Donnee
-
-class DonneeBiologique{
-age
-sexe
-taille
-poids
-calories
-
-}
-class DonneeQuotidienne{
-sommeil
-hydratation?
-Calorie-consommation
-Stress
-activitéPhysique
-pas
-
-}
-
 Donnee <|-- DonneeBiologique
 Donnee <|-- DonneeQuotidienne
-
-
-
-
-
 
 class IndiceSommeil
 class IndiceHydratation
@@ -76,8 +100,9 @@ intensite
 duree
 listeExercice
 }
-class AnalyseStats
-AnalyseStats - Donnee
+activitePhysique <|--Entrainement
+class AnalyseStats {}
+
 
 
 
