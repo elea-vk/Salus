@@ -1,0 +1,115 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+
+class Utilisateur {
+mail : String
+identifiant : String
+motDePasse : String
+
+profil : Profil
+
+seConnecter()
+seDéconnecter()
+}
+
+class Profil {
+taille : float
+poids : float
+sexe : String
+age : int
+caloriesNecessaires : float
+
+ aRécupéré
+ indiceSanté
+
+}
+
+abstract class  DonneeQuotidienne {
+}
+class Sommeil {}
+DonneeQuotidienne <|-- Sommeil
+
+class Hydratation {}
+DonneeQuotidienne <|-- Hydratation
+
+class Stress {}
+DonneeQuotidienne <|--Stress
+
+class Pas {}
+DonneeQuotidienne <|--Pas
+
+class activitePhysique {}
+DonneeQuotidienne <|--activitePhysique
+
+class caloriesConsommation {}
+DonneeQuotidienne <|-- caloriesConsommation
+
+
+abstract class DonneeBiologique{}
+
+class age {}
+DonneeBiologique <|-- age
+
+class taille
+DonneeBiologique <--- taille
+
+class sexe {}
+DonneeBiologique <|--sexe
+
+class poids {}
+DonneeBiologique <|-- poids
+
+class caloriesNecessaires {}
+DonneeBiologique <|-- caloriesNecessaires
+
+
+
+class Donnee{
+ effacerDonnee()
+ entrerDonnee()
+}
+class Indice{
+valeur
+valeurMoyenne
+calculer()
+}
+
+Donnee <|-- DonneeBiologique
+Donnee <|-- DonneeQuotidienne
+
+class IndiceSommeil
+class IndiceHydratation
+class IndiceCalorie
+class IndiceStress
+class IndiceActPhys
+class IndicePas
+
+
+Indice<|-- IndiceSommeil
+Indice<|-- IndiceHydratation
+Indice<|-- IndiceCalorie
+Indice<|-- IndiceStress
+Indice<|-- IndiceActPhys
+Indice<|-- IndicePas
+
+class Entrainement{
+description
+date
+intensite
+duree
+listeExercice
+}
+activitePhysique <|--Entrainement
+class AnalyseStats {}
+
+
+
+
+
+
+
+
+
+
+@enduml
