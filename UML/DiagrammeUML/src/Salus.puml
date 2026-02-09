@@ -6,83 +6,122 @@ class Utilisateur {
 mail : String
 identifiant : String
 motDePasse : String
-
 profil : Profil
-
-seConnecter()
-seDéconnecter()
+changerMotDePasse (ancienMdp : string, nouveauMdp : string): void
+seConnecter() : boolean
+seDéconnecter() : void
 }
 
 class Profil {
-taille : float
-poids : float
-sexe : String
-age : int
-caloriesNecessaires : float
+listeDeDonneesQt : list <DonneeQuotidienne>
+listeDeDonneesBio : list <DonneeQuotidienne>
+historiqueIndices : list <Indice>
+historiqueIndiceSante : list <indiceSanté>
+aRécupéré : boolean
+indiceSanté : number
 
- aRécupéré
- indiceSanté
+effacerDonnee() : void
+entrerDonnee() : Donnee
+obtenirDonneesBio(Date) : listeDeDonneesBio
+obtenirDonneesQt (Date) : listeDeDonneesQt
+
+calculerIndiceDeSante () : number
 
 }
 
-abstract class  DonneeQuotidienne {
+class Donnee{
+date : Date
+
 }
-class Sommeil {}
+class  DonneeQuotidienne {
+
+estSuffisant (): boolean
+}
+class Sommeil {
+heureCoucher : date
+heureLever : date
+qualite : number
+
+calculerTempsSommeil(Date1, Date2) : number
+estSuffisant (): boolean
+}
 DonneeQuotidienne <|-- Sommeil
 
-class Hydratation {}
+class Hydratation {
+quantite : number
+type : string
+heure : Date
+
+estSuffisant(): boolean
+ajouterEntree(number): void
+}
 DonneeQuotidienne <|-- Hydratation
 
-class Stress {}
+class Stress {
+intensite : number
+estSuffisant(): boolean
+}
 DonneeQuotidienne <|--Stress
 
-class Pas {}
+class Pas {
+estSuffisant(): boolean
+}
 DonneeQuotidienne <|--Pas
 
-class activitePhysique {}
+
+class activitePhysique {
+nomActivite : String
+duree : number
+intensite : number
+
+calculerTempsRepos (number) : number
+
+}
 DonneeQuotidienne <|--activitePhysique
 
-class caloriesConsommation {}
+class caloriesConsommation {
+caloriesConsommees : number
+}
 DonneeQuotidienne <|-- caloriesConsommation
 
 
-abstract class DonneeBiologique{}
-
-class age {}
-DonneeBiologique <|-- age
-
-class taille
-DonneeBiologique <--- taille
-
-class sexe {}
-DonneeBiologique <|--sexe
-
-class poids {}
-DonneeBiologique <|-- poids
-
-class caloriesNecessaires {}
-DonneeBiologique <|-- caloriesNecessaires
-
-
-
-class Donnee{
- effacerDonnee()
- entrerDonnee()
-}
-class Indice{
-valeur
-valeurMoyenne
-calculer()
+class DonneeBiologique{
+age : number
+taille : number
+sexe : enum
+poids : number
+caloriesNecessaires : number
 }
 
 Donnee <|-- DonneeBiologique
 Donnee <|-- DonneeQuotidienne
 
-class IndiceSommeil
-class IndiceHydratation
-class IndiceCalorie
-class IndiceStress
-class IndiceActPhys
+
+class Indice{
+valeur :  number
+valeurRecommandee : number
+valeurMoyenne : number
+dateCalculIndice : Date
+
+calculerIndice() : number
+comparerAvcValeurReco () : string
+}
+
+class IndiceSommeil {
+
+
+}
+class IndiceHydratation {
+
+}
+class IndiceCalorie {
+
+}
+class IndiceStress {
+}
+class IndiceActPhys {
+
+}
 class IndicePas
 
 
@@ -101,7 +140,33 @@ duree
 listeExercice
 }
 activitePhysique <|--Entrainement
-class AnalyseStats {}
+
+
+class AnalyseStats {
+profil : Profil
+moyenneSommeil : number
+moyenneHydratation : number
+moyenneCalories : number
+moyenneStress : number
+moyennePas : number
+indiceSanteMoyen : number
+moyenneActivite : number
+
+
+meilleurSommeil : Sommeil
+pireSommeil : Sommeil
+maxPas : Pas
+maxStress : Stress
+
+calculerToutesMoyennes (): void
+calculerExtremes (): void
+
+genererRapportQuotidien (Date): string
+genererRapportHebdo (Date, Date) : string
+genererRapportMensuel (Date, Date) : string
+
+analyserTendance (Indice) : string
+}
 
 
 
