@@ -34,6 +34,7 @@ Toute personne qui, dans son quotidien, se sent dépassée et souhaite se reconn
 L’application est en lien en majorité avec les sciences de la santé et la biologie, car elle se concentre sur les impacts des habitudes de vie sur la santé humaine. De plus, l’application est en lien avec les mathématiques et les statistiques, car elle utilise plusieurs équations pour calculer des moyennes, des indices de variables et propose des corrélations entre diverses variables.
 
 
+
 ➤ ➤ ➤ 2.	Technologies utilisées
 
 2.1 Outils et environnements
@@ -41,9 +42,10 @@ Pour programmer, nous avons décidé d’utiliser du TypeScript pour toute la pa
 
 2.2 Justifications
 Nous avons décidé d’utiliser TypeScript, car le langage permet de pouvoir définir les types de variables dont nous avons besoin pour construire la logique de notre application, contrairement à JavaScript. Cela nous permet de coder plus facilement avec la logique que nous avons apprise durant les derniers cours de programmation. Pour l’interface utilisateur, utiliser React Native avec du JSX permet de nous simplifier l’appel aux éléments natifs qui composent une interface mais aussi d’avoir de nombreuses librairies à portée de main. Visual Code studio nous paraissait l’IDE la plus pertinente, car c’est une IDE très utilisée avec laquelle il est très facile de travailler avec de nombreux langages. Au niveau de l’utilisation de Node.js, cela nous paraissait être la base de données la plus adaptée pour pouvoir programmer en Javascript et plus précisément en TypeScript comme il s’agit du langage nous allons travailler avec. Enfin, Expo était recommandé avec l’utilisation de React Native, ce qui va fortement faciliter notre tâche pour lancer notre application avec une simple commande dans le terminal. Enfin, pour obtenir un émulateur Android, nous allons travailler avec Android Studio.
- 
+
 2.3 Défis et difficultés
 Les principales difficultés du projet concernent l’apprentissage et l’utilisation de nouvelles technologies, notamment les langages TypeScript et JSX, ainsi que React Native et Expo pour le développement d’une interface utilisateur complète et fonctionnelle. L’intégration et l’utilisation correcte de données scientifiques issues des sciences de la santé représentent également un défi important, tout comme l’apprentissage de l’utilisation d’une API, puisque nous n’en avons jamais utilisée auparavant. Enfin, la réalisation d’un projet concret et complet dans un temps limité, tout en respectant le rythme des autres cours, constitue une difficulté supplémentaire qui nécessite une bonne organisation et une répartition efficace des tâches au sein de l’équipe.
+
 
 
 ➤ ➤ ➤ 3. Plan de travail en équipe
@@ -53,20 +55,30 @@ Diagramme de Gantt-Salus.xlsx
 
 3.2 Analyse du projet
 Enjeux :
+
 •	Créer une application non culpabilisante pour aider l’utilisateur à faire un premier pas vers une vie plus saine ;
+
 •	Accompagner l’utilisateur dans une pratique sécuritaire du sport.
+
 Contraintes : 
+
 •	S’assurer de ne pas laisser l’application devenir toxique, afin qu’elle ne génère pas ou n’encourage pas des comportements obsessionnels, que ce soient des troubles alimentaires ou une psychose sur les habitudes de vie ;
+
 •	Utiliser des sources scientifiques fiables pour les habitudes de vies et les sciences de la santé ;
+
 •	Proposer des exercices qui sont sains pour les utilisateurs, qui sont sans danger et qui leur permet d’éviter un surmenage.
 
 3.3 Diagramme UML
+
 ![Diagramme UML](DiagrammeUML.png)
- 
+
 3.4 Vues de l’application
 Voici les vues principales de l’applications :
+
 ![Vues 1](Vues1.png)
 ![Vues 2](Vues2.png)
+
+
 
 ➤ ➤ ➤ 4. Conclusion
 En résumé, notre application est un point de départ pour toute personne souhaitant comprendre comment ses habitudes influencent sa vie quotidienne et comment elle peut changer quelques habitudes. L’application permet d’accompagner la personne qui n’a pas forcément de connaissances sur les liens entre habitudes de vie et santé et de comprendre comment les exercices influencent les différentes parties du corps. Elle accompagne la personne dans la pratique d’une activité physique, tout en privilégiant sa santé et sa sécurité.
