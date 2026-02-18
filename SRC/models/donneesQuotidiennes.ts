@@ -1,6 +1,6 @@
-import { Donnee } from "./donnees";
-import { Hydratation } from "./hydratation";
-import { Sommeil } from "./sommeil";
+import { Donnee } from "./donnees.ts";
+import { Hydratation } from "./hydratation.ts";
+import { Sommeil } from "./sommeil.ts";
 
 export class DonneeQuotidienne extends Donnee{
    sommeil : Sommeil
