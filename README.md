@@ -5,8 +5,11 @@ Bienvenue sur Salus!
 1.1 Présentation de l’équipe
 Rôles et responsabilités de chacun des membres :
 •	BOUTALEB, Meryam : classe profil + design + UI
+
 •	DROLET, Éloïse : classe donnée et ce qui en découle + classe analyse Stats
+
 •	NSOULI Omar : indices santé + profil + onglet musculation
+
 •	VERDONK Eléa : classe utilisateur dont authentification utilisateur + stockage de données
 
 1.2 L’idée
@@ -22,7 +25,7 @@ La nouveauté de Salus réside dans sa polyvalence. Contrairement à la plupart 
 Cette approche tout-en-un rend le processus beaucoup plus accessible et moins accablant pour ceux qui ont un quotidien chargé. En centralisant toutes ces dimensions du bien-être, Salus permet à l’utilisateur de conserver une vue d’ensemble sur sa progression sans avoir à jongler entre plusieurs applications.
 
 1.5	Cas d’utilisation 
- (IMG)
+![Cas d'utilisation](CasUtilisation.png)
  
 1.6 Public cible
 Toute personne qui, dans son quotidien, se sent dépassée et souhaite se reconnecter avec elle-même et avec sa santé serait encline à utiliser cette application puisqu’elle va permettre de comprendre comment différentes variables du quotidien influencent le bien-être et la santé. Nous voulons qu’elle soit une application positive, accessible et motivante, qui propose des améliorations à la portée de tous, incluant ceux qui ne savent pas trop par où commencer pour apporter des changements positifs à leur quotidien ou qui trouvent la tâche trop grande pour se lancer.
@@ -35,6 +38,7 @@ L’application est en lien en majorité avec les sciences de la santé et la bi
 
 2.1 Outils et environnements
 Pour programmer, nous avons décidé d’utiliser du TypeScript pour toute la partie logique et du JSX pour toute l’interface utilisateur combinée avec des éléments du React. L’application sera lancée avec Expo. La base de données que nous allons utiliser est Node.js. Pour avoir un émulateur Android, nous allons utiliser Android Studio. Au niveau de l’IDE, nous allons utiliser Visual Code Studio. Enfin, pour collaborer, nous allons utiliser GitHub. Nous cherchons également une API qui contient des exercices pour toute la partie corps humain interactif - recommandation d’exercices.
+
 2.2 Justifications
 Nous avons décidé d’utiliser TypeScript, car le langage permet de pouvoir définir les types de variables dont nous avons besoin pour construire la logique de notre application, contrairement à JavaScript. Cela nous permet de coder plus facilement avec la logique que nous avons apprise durant les derniers cours de programmation. Pour l’interface utilisateur, utiliser React Native avec du JSX permet de nous simplifier l’appel aux éléments natifs qui composent une interface mais aussi d’avoir de nombreuses librairies à portée de main. Visual Code studio nous paraissait l’IDE la plus pertinente, car c’est une IDE très utilisée avec laquelle il est très facile de travailler avec de nombreux langages. Au niveau de l’utilisation de Node.js, cela nous paraissait être la base de données la plus adaptée pour pouvoir programmer en Javascript et plus précisément en TypeScript comme il s’agit du langage nous allons travailler avec. Enfin, Expo était recommandé avec l’utilisation de React Native, ce qui va fortement faciliter notre tâche pour lancer notre application avec une simple commande dans le terminal. Enfin, pour obtenir un émulateur Android, nous allons travailler avec Android Studio.
  
@@ -57,13 +61,12 @@ Contraintes :
 •	Proposer des exercices qui sont sains pour les utilisateurs, qui sont sans danger et qui leur permet d’éviter un surmenage.
 
 3.3 Diagramme UML
-(IMG)
+![Diagramme UML](DiagrammeUML.png)
  
 3.4 Vues de l’application
 Voici les vues principales de l’applications :
-(IMG)
-
-
+![Vues 1](Vues1.png)
+![Vues 2](Vues2.png)
 
 ➤ ➤ ➤ 4. Conclusion
 En résumé, notre application est un point de départ pour toute personne souhaitant comprendre comment ses habitudes influencent sa vie quotidienne et comment elle peut changer quelques habitudes. L’application permet d’accompagner la personne qui n’a pas forcément de connaissances sur les liens entre habitudes de vie et santé et de comprendre comment les exercices influencent les différentes parties du corps. Elle accompagne la personne dans la pratique d’une activité physique, tout en privilégiant sa santé et sa sécurité.
