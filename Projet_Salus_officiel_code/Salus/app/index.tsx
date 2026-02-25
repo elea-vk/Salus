@@ -40,6 +40,18 @@ export default function Index() {
         <Ionicons name="moon-outline" size={40} color="white" />
         
       </Pressable>
+     
+     
+      <Pressable 
+  style={({ pressed }) => [
+    styles.iconButton,
+    { backgroundColor: pressed ? '#f8fafa' : '#efb6d4' }
+  ]}
+  onPress={() => router.push("/musculation")}
+>
+  <Ionicons name="barbell-outline" size={40} color="white" />
+</Pressable>
+
       
     </View>
     
