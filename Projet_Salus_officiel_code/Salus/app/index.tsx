@@ -35,22 +35,30 @@ export default function Index() {
           styles.iconButton,
           { backgroundColor: pressed ? '#f8fafa' : '#efb6d4' } // Feedback
         ]}
-        onPress={() => router.push("/sommeil")}
+        onPress={() => router.push("/sommeilPage")}
       >
         <Ionicons name="moon-outline" size={40} color="white" />
         
       </Pressable>
      
      
-      <Pressable 
-  style={({ pressed }) => [
-    styles.iconButton,
-    { backgroundColor: pressed ? '#f8fafa' : '#efb6d4' }
-  ]}
-  onPress={() => router.push("/musculation")}
->
-  <Ionicons name="barbell-outline" size={40} color="white" />
-</Pressable>
+      <Pressable style={({ pressed }) => [
+        styles.iconButton,
+        { backgroundColor: pressed ? '#f8fafa' : '#efb6d4' }
+      ]}
+      onPress={() => router.push("/musculation")}
+    >
+      <Ionicons name="barbell-outline" size={40} color="white" />
+    </Pressable>
+
+    <Pressable style={({ pressed }) => [
+      styles.iconButton,
+      { backgroundColor: pressed ? '#f8fafa' : '#efb6d4' } // Feedback  
+    ]}
+    onPress={() => router.push("/graphique")}
+    >
+      <Ionicons name="bar-chart-outline" size={40} color="white" />
+    </Pressable>
 
       
     </View>
