@@ -80,15 +80,15 @@ export async function databaseHydratation() {
     await dbHydratation.execAsync (`
         CREATE TABLE IF NOT EXISTS hydratation(
             id INTEGER PRIMARY KEY NOT NULL,
-            date TEXT NOT NULL
-            heures TEXT NOT NULL
+            date TEXT NOT NULL,
+            heures TEXT NOT NULL,
             quantite REAL NOT NULL
         );    
     `)
 }
 
 export async function ajouterHydratation(db : any, date : string, heures : string, quantite : number) {
-    return db.runAsync ('INSERT INTO hydratation(date, heures, quantite), VALUES (?,?,?)', [date,heures,quantite])
+    return db.runAsync ('INSERT INTO hydratation(date, heures, quantite) VALUES (?,?,?)', [date,heures,quantite])
 }
 
 export async function recupererHydratation(db : any, date : string) {
@@ -118,14 +118,14 @@ export async function databaseJournal() {
     await dbJournal.execAsync (`
         CREATE TABLE IF NOT EXISTS journal(
             id INTEGER PRIMARY KEY NOT NULL,
-            date TEXT NOT NULL
-            heures TEXT NOT NULL
+            date TEXT NOT NULL,
+            heures TEXT NOT NULL,
             contenu TEXT NOT NULL
         );    
     `)
 }
 export async function ajouterEntree(db : any, date : string, heures : string, quantite : number) {
-    return db.runAsync ('INSERT INTO journal(date, heures, quantite), VALUES (?,?,?)', [date,heures,quantite])
+    return db.runAsync ('INSERT INTO journal(date, heures, quantite) VALUES (?,?,?)', [date,heures,quantite])
 }
 
 export async function recupererEntree(db : any, date : string) {
