@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, Pressable } from "react-native";
+import Couleurs from "../constantes/couleurs";
 
 type Muscle =
   | "Pectoraux"
@@ -14,7 +15,7 @@ export default function MusculationScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Musculation 💪</Text>
+      <Text style={styles.title}>Musculation</Text>
 
       <View style={styles.canvas}>
         <Image
@@ -39,7 +40,7 @@ export default function MusculationScreen() {
 
       <View style={styles.info}>
         <Text style={styles.infoText}>
-          {muscle ? `Muscle sélectionné : ${muscle}` : "Clique sur un muscle"}
+          {muscle ? `Muscle sélectionné : ${muscle}` : "Sélectionner un muscle"}
         </Text>
       </View>
     </View>
@@ -49,7 +50,7 @@ export default function MusculationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#e8c0d7",
+    backgroundColor: Couleurs.background,
     alignItems: "center",
     paddingTop: 20,
     paddingHorizontal: 12,
