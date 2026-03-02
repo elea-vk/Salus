@@ -1,43 +1,129 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Image, Pressable } from "react-native";
 
 type Muscle =
+  // FACE (gauche)
   | "Pectoraux"
-  | "Épaules"
-  | "Biceps"
+  | "Épaules (face)"
+  | "Biceps (bras gauche)"
+  | "Biceps (bras droit)"
   | "Abdos"
   | "Quadriceps"
-  | "Mollets";
+  | "Mollets (face)"
+  // DOS (droite)
+  | "Épaules (dos)"
+  | "Triceps"
+  | "Dos"
+  | "Fessiers"
+  | "Ischio-jambiers"
+  | "Mollets (dos)";
+
+type ZoneDef = {
+  key: Muscle;
+  x: number; // 0..1 (par rapport à l'image)
+  y: number;
+  w: number;
+  h: number;
+};
+
+// Décalage léger vers la droite (comme tu avais demandé)
+const SHIFT_X = 0.03;
+
+// ✅ Zones en % sur l’IMAGE
+const ZONES: ZoneDef[] = [
+  // =========================
+  // FACE (silhouette gauche)
+  // =========================
+  { key: "Épaules (face)", x: 0.10, y: 0.16, w: 0.28, h: 0.09 },
+  { key: "Pectoraux", x: 0.14, y: 0.22, w: 0.20, h: 0.09 },
+
+  { key: "Biceps (bras gauche)", x: 0.03, y: 0.24, w: 0.12, h: 0.20 },
+  { key: "Biceps (bras droit)", x: 0.33, y: 0.24, w: 0.12, h: 0.20 },
+
+  { key: "Abdos", x: 0.16, y: 0.30, w: 0.16, h: 0.18 },
+  { key: "Quadriceps", x: 0.14, y: 0.50, w: 0.20, h: 0.22 },
+  { key: "Mollets (face)", x: 0.16, y: 0.74, w: 0.16, h: 0.17 },
+
+  // =========================
+  // DOS (silhouette droite)
+  // =========================
+  // Épaules dos (haut de la silhouette droite)
+  { key: "Épaules (dos)", x: 0.58, y: 0.17, w: 0.26, h: 0.10 },
+
+  // Dos (grand dorsal / haut du dos)
+  { key: "Dos", x: 0.60, y: 0.24, w: 0.22, h: 0.22 },
+
+  // Triceps (bras, côté silhouette droite)
+  { key: "Triceps", x: 0.82, y: 0.26, w: 0.10, h: 0.20 },
+
+  // Fessiers
+  { key: "Fessiers", x: 0.64, y: 0.48, w: 0.16, h: 0.12 },
+
+  // Ischio-jambiers (arrière cuisses)
+  { key: "Ischio-jambiers", x: 0.63, y: 0.60, w: 0.18, h: 0.18 },
+
+  // Mollets dos
+  { key: "Mollets (dos)", x: 0.66, y: 0.78, w: 0.14, h: 0.16 },
+];
+
+// Si ton image est carrée, ça marche (sinon mets les vraies dimensions)
+const IMG_W = 1024;
+const IMG_H = 1024;
 
 export default function MusculationScreen() {
   const [muscle, setMuscle] = useState<Muscle | null>(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+
+  const fitted = useMemo(() => {
+    if (box.w === 0 || box.h === 0) return { x: 0, y: 0, w: 0, h: 0 };
+
+    const scale = Math.min(box.w / IMG_W, box.h / IMG_H);
+    const w = IMG_W * scale;
+    const h = IMG_H * scale;
+    const x = (box.w - w) / 2;
+    const y = (box.h - h) / 2;
+
+    return { x, y, w, h };
+  }, [box.w, box.h]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Musculation 💪</Text>
+      <Text style={styles.header}>Musculation 💪</Text>
 
-      <View style={styles.canvas}>
+      <View
+        style={styles.canvas}
+        onLayout={(e) => {
+          const { width, height } = e.nativeEvent.layout;
+          setBox({ w: width, h: height });
+        }}
+      >
         <Image
-          // ✅ si tu as renommé en corps_muscles.png
           source={require("../assets/images/corps_muscles.png")}
-
-          // ❌ si tu n’as pas renommé (ça peut marcher mais moins recommandé)
-          // source={require("../../assets/corps muscles.png")}
-
           style={styles.image}
           resizeMode="contain"
         />
 
-        {/* Zones cliquables (transparentes) */}
-        <Pressable style={[styles.zone, styles.chest]} onPress={() => setMuscle("Pectoraux")} />
-        <Pressable style={[styles.zone, styles.shoulders]} onPress={() => setMuscle("Épaules")} />
-        <Pressable style={[styles.zone, styles.biceps]} onPress={() => setMuscle("Biceps")} />
-        <Pressable style={[styles.zone, styles.abs]} onPress={() => setMuscle("Abdos")} />
-        <Pressable style={[styles.zone, styles.quads]} onPress={() => setMuscle("Quadriceps")} />
-        <Pressable style={[styles.zone, styles.calves]} onPress={() => setMuscle("Mollets")} />
+        {ZONES.map((z) => {
+          const left = fitted.x + (z.x + SHIFT_X) * fitted.w;
+          const top = fitted.y + z.y * fitted.h;
+          const width = z.w * fitted.w;
+          const height = z.h * fitted.h;
+
+          return (
+            <Pressable
+              key={z.key}
+              onPress={() => setMuscle(z.key)}
+              style={[
+                styles.zone,
+                { left, top, width, height },
+                muscle === z.key && styles.zoneSelected,
+              ]}
+            />
+          );
+        })}
       </View>
 
-      <View style={styles.info}>
+      <View style={styles.infoCard}>
         <Text style={styles.infoText}>
           {muscle ? `Muscle sélectionné : ${muscle}` : "Clique sur un muscle"}
         </Text>
@@ -47,48 +133,30 @@ export default function MusculationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#e8c0d7",
-    alignItems: "center",
-    paddingTop: 20,
-    paddingHorizontal: 12,
-  },
-  title: { fontSize: 22, fontWeight: "700", marginBottom: 10 },
+  container: { flex: 1, backgroundColor: "#e8c0d7", padding: 16, gap: 12 },
+  header: { fontSize: 28, fontWeight: "800", textAlign: "center", marginTop: 10 },
 
   canvas: {
     width: "100%",
     height: 520,
     backgroundColor: "white",
-    borderRadius: 12,
+    borderRadius: 18,
     position: "relative",
     overflow: "hidden",
   },
   image: { width: "100%", height: "100%" },
 
+  // Debug ON
   zone: {
     position: "absolute",
-    borderRadius: 10,
-     backgroundColor: "rgba(0,255,0,0.25)",
-
-    // ✅ Décommente pour voir les zones (ajuster)
-    // backgroundColor: "rgba(0,255,0,0.25)",
+    borderRadius: 16,
+    backgroundColor: "rgba(0,255,0,0.18)",
+  },
+  // sélection
+  zoneSelected: {
+    backgroundColor: "rgba(255,0,0,0.22)",
   },
 
-  // 🔧 Ajuste ces valeurs si nécessaire
-  chest: { top: 110, left: "32%", width: 130, height: 60 },
-  shoulders: { top: 95, left: "25%", width: 200, height: 55 },
-  biceps: { top: 140, left: "18%", width: 70, height: 90 },
-  abs: { top: 175, left: "36%", width: 100, height: 90 },
-  quads: { top: 270, left: "34%", width: 120, height: 120 },
-  calves: { top: 410, left: "38%", width: 90, height: 90 },
-
-  info: {
-    marginTop: 14,
-    backgroundColor: "white",
-    padding: 12,
-    borderRadius: 10,
-    width: "100%",
-  },
-  infoText: { fontSize: 16, fontWeight: "600" },
+  infoCard: { backgroundColor: "white", borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14 },
+  infoText: { fontSize: 18, fontWeight: "700" },
 });
