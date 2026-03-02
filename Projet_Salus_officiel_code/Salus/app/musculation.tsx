@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Image, Pressable } from "react-native";
+import Couleurs from "../constantes/couleurs";
 
 type Muscle =
   // FACE (gauche)
@@ -88,7 +89,11 @@ export default function MusculationScreen() {
 
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       <Text style={styles.header}>Musculation 💪</Text>
+=======
+      <Text style={styles.title}>Musculation</Text>
+>>>>>>> 2df7c22189a4d40b0b0dc796f5675247e1d839dd
 
       <View
         style={styles.canvas}
@@ -125,7 +130,7 @@ export default function MusculationScreen() {
 
       <View style={styles.infoCard}>
         <Text style={styles.infoText}>
-          {muscle ? `Muscle sélectionné : ${muscle}` : "Clique sur un muscle"}
+          {muscle ? `Muscle sélectionné : ${muscle}` : "Sélectionner un muscle"}
         </Text>
       </View>
     </View>
@@ -133,8 +138,19 @@ export default function MusculationScreen() {
 }
 
 const styles = StyleSheet.create({
+<<<<<<< HEAD
   container: { flex: 1, backgroundColor: "#e8c0d7", padding: 16, gap: 12 },
   header: { fontSize: 28, fontWeight: "800", textAlign: "center", marginTop: 10 },
+=======
+  container: {
+    flex: 1,
+    backgroundColor: Couleurs.background,
+    alignItems: "center",
+    paddingTop: 20,
+    paddingHorizontal: 12,
+  },
+  title: { fontSize: 22, fontWeight: "700", marginBottom: 10 },
+>>>>>>> 2df7c22189a4d40b0b0dc796f5675247e1d839dd
 
   canvas: {
     width: "100%",
