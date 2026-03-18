@@ -85,6 +85,7 @@ export async function databaseHydratation() {
             quantite REAL NOT NULL
         );    
     `)
+    return dbHydratation
 }
 
 export async function ajouterHydratation(db : any, date : string, heures : string, quantite : number) {
@@ -123,9 +124,10 @@ export async function databaseJournal() {
             contenu TEXT NOT NULL
         );    
     `)
+    return dbJournal
 }
 export async function ajouterEntree(db : any, date : string, heures : string, quantite : number) {
-    return db.runAsync ('INSERT INTO journal(date, heures, quantite) VALUES (?,?,?)', [date,heures,quantite])
+    return db.runAsync ('INSERT INTO journal(date, heures, contenu) VALUES (?,?,?)', [date,heures,quantite])
 }
 
 export async function recupererEntree(db : any, date : string) {
@@ -151,14 +153,15 @@ export async function supprimerToutesEntrees(db : any) {
 
 //database utilisateur (jsp si on va l'utiliser pour le moment mais la voici au cas ou)
 export async function databaseUtilisateur() {
-    const dbJournal = await SQLite.openDatabaseAsync ('dataUtilisateur')
-    await dbJournal.execAsync (`
+    const dbUtilisateur = await SQLite.openDatabaseAsync ('dataUtilisateur')
+    await dbUtilisateur.execAsync (`
         CREATE TABLE IF NOT EXISTS utilisateur(
             id INTEGER PRIMARY KEY NOT NULL,
             email TEXT NOT NULL,
-            motDePasse TEXT NOT NULL,
+            motDePasse TEXT NOT NULL
         );    
     `)
+    return dbUtilisateur
 }
 
 export async function modifierMotDePasse(db : any, nouveauMotDePasse : string) {
@@ -177,9 +180,10 @@ export async function databaseStress() {
         CREATE TABLE IF NOT EXISTS stress(
             id INTEGER PRIMARY KEY NOT NULL,
             date TEXT NOT NULL,
-            niveau TEXT NOT NULL,
+            niveau TEXT NOT NULL
         );    
     `)
+    return dbStress
 }
 
 export async function ajouterStress(db : any, date : string, niveau : number) {

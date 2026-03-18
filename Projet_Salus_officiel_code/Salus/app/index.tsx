@@ -58,7 +58,16 @@ export default function Index() {
           >
             <Ionicons name="barbell-outline" size={41} color={Couleurs.secondary} />
           </Pressable>
+          <Pressable
+            style={styles.pageButton}
+            onPress ={()=> router.push("/test_timePicker")}
+          >
+        <Ionicons name="arrow-down" size={41} color={Couleurs.secondary} />
+       </Pressable>
+
         </View>
+      
+       
 
         {/* Rangée 3 */}
         <View style={styles.row}>
