@@ -58,7 +58,7 @@ export async function recupererActivite(db : any, date : string) {
 }
 
 export async function recupererToutesActivites(db : any) {
-    return db.getAllAsync ('SELECT * FROM activite')
+    return db.getAllAsync ('SELECT * FROM activite ORDER BY date DESC')
 }
 
 export async function supprimerActivite(db : any, nom : string, date : string) {
@@ -97,7 +97,7 @@ export async function recupererHydratation(db : any, date : string) {
 }
 
 export async function recupererToutesHydratations(db : any) {
-    return db.getAllAsync ('SELECT * FROM hydratation')
+    return db.getAllAsync ('SELECT * FROM hydratation ORDER BY date DESC')
 }
 
 export async function supprimerHydratationHeure(db : any, date : string, heures : string) {
@@ -135,7 +135,7 @@ export async function recupererEntree(db : any, date : string) {
 }
 
 export async function recupererToutesEntrees(db : any) {
-    return db.getAllAsync ('SELECT * FROM journal')
+    return db.getAllAsync ('SELECT * FROM journal ORDER BY date DESC')
 }
 
 export async function supprimerEntreeHeures(db : any, date : string, heures : string) {
@@ -190,4 +190,79 @@ export async function ajouterStress(db : any, date : string, niveau : number) {
     return db.runAsync ('INSERT INTO stress')
 }
 
-//database alimentation
+export async function recupererTousStress (db : any){
+    return db.runAsync ('SELECT * FROM stress ORDER BY date DESC')
+}
+
+//database alimentation 
+
+export async function databaseAlimentation() {
+    const dbAlimentation = await SQLite.openDatabaseAsync ('dataAlimentation')
+    await dbAlimentation.execAsync (`
+        CREATE TABLE IF NOT EXISTS alimentation (
+        id INTEGER PRIMARY KEY NOT NULL,
+        date TEXT NOT NULL,
+        repas TEXT NOT NULL,
+        contenu TEXT NOT NULL
+        )
+    `)
+    return dbAlimentation
+}
+
+export async function ajouterAliment (db : any, date : string, nom : string){
+    return db.runAsync ('INSERT INTO alimentation (date,nom)')
+}
+
+//database habitude
+
+export async function databaseHabitudes () {
+    const dbHabitudes = await SQLite.openDatabaseAsync ('dataHabitudes')
+    await dbHabitudes.execAsync (`
+        CREATE TABLE IF NOT EXISTS habitudes (
+            id INTERGER PRIMARY KEY NOT NULL,
+            date TEXT NOT NULL,
+            contenu TEXT NOT NULL,
+            faite BOOLEAN NOT NULL
+        )
+        
+    `)
+    return dbHabitudes
+}
+
+export async function databaseHabitudesFaites (){
+    const dbHabitudesFaites = await SQLite.openDatabaseAsync ('dataHabitudesFaites')
+    await dbHabitudesFaites.execAsync (`
+        CREATE TABLE IF NOT EXISTS habitudesFaites (
+        id INTERFER PRIMARY KEY NOT NULL,
+        dateFaite TEXT NOT NULL,
+        contenu TEXT NOT NULL
+        )        
+    `)
+    return dbHabitudesFaites
+}
+
+
+export async function ajouterHabitudes(db : any, date : string, contenu : string) {
+    return db.runAsync ('INSERT INTO habitudes (date, contenu) VALUES (?,?)', [date,contenu])
+}
+export async function supprimerHabitude(db : any, contenu : string) {
+    return db.runAsync ('DELETE FROM habitudes WHERE contenu = ?', contenu)
+}
+export async function supprimerToutesHabitudes(db : any) {
+    return db.runAsync ('DELETE FROM habitudes')
+}
+
+export async function recupererHabitude(db : any, contenu : string) {
+    return db.runAsync ('SELECT FROM habitudes WHERE contenu = ?', contenu)
+}
+export async function creerTrackingHabitudesFaites(db : any, contenu : string, faite : boolean) {
+    return db.runAsync (`INSERT INTO habitudesFaites SELECT * FROM habitudes WHERE faite = true`, faite)
+}
+
+export async function recupererHabitudeFaite(db : any, contenu : string) {
+    return db.runAsync ('SELECT * FROM habitudesFaites WHERE contenu = ?', contenu)
+}
+
+export async function recupererToutesHabitudesFaites (db : any) {
+    return db.runAsync ('SELECT * FROM habitudesFaites')
+}
