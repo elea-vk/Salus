@@ -67,31 +67,91 @@ const MUSCLE_INFO: Record<string, MuscleInfo> = {
   deltoids: {
     title: "Épaules / Deltoïdes",
     scientific: "Deltoideus",
-    description: "Muscle principal de l’épaule.",
+    description: "Muscles principaux de l’épaule.",
     functions: ["Abduction", "Flexion", "Extension de l’épaule"],
-    exercises: [],
+    exercises: [
+      {
+        name: "Dumbbell Shoulder Press",
+        image: require("../assets/images/exercices/dumbbell_shoulder_press.jpg"),
+      },
+      {
+        name: "Machine Shoulder Press",
+        image: require("../assets/images/exercices/machine_shoulder_press.jpg"),
+      },
+      {
+        name: "Dumbbell Lateral Raise",
+        image: require("../assets/images/exercices/dumbbell_lateral_raise.gif"),
+      },
+      {
+        name: "Cable Lateral Raise",
+        image: require("../assets/images/exercices/cable_lateral_raise.gif"),
+      },
+      {
+        name: "Pike Pushups",
+        image: require("../assets/images/exercices/pike_pushups.gif"),
+      },
+      {
+        name: "Rear Delt Fly",
+        image: require("../assets/images/exercices/rear_delt_fly.gif"),
+      },
+    ],
     rest: "48 h",
-    safety: "Éviter l’élan et garder le mouvement contrôlé.",
+    safety:
+      "Éviter l’élan, garder le mouvement contrôlé et ne pas hausser les épaules excessivement.",
   },
 
   biceps: {
     title: "Biceps",
     scientific: "Biceps brachii",
-    description: "Muscle à l’avant du bras.",
+    description: "Muscle situé à l’avant du bras.",
     functions: ["Flexion du coude", "Supination"],
-    exercises: [],
+    exercises: [
+      {
+        name: "Dumbbell Curl",
+        image: require("../assets/images/exercices/dumbbell_curl.gif"),
+      },
+      {
+        name: "Hammer Curls",
+        image: require("../assets/images/exercices/hammer_curls.gif"),
+      },
+      {
+        name: "Preacher Curl",
+        image: require("../assets/images/exercices/preacher_curl.gif"),
+      },
+    ],
     rest: "48 h",
-    safety: "Ne pas balancer le tronc.",
+    safety: "Ne pas balancer le tronc et garder les coudes stables.",
   },
 
   triceps: {
     title: "Triceps",
     scientific: "Triceps brachii",
-    description: "Muscle à l’arrière du bras.",
+    description: "Muscle situé à l’arrière du bras.",
     functions: ["Extension du coude"],
-    exercises: [],
+    exercises: [
+      {
+        name: "Bench Dips",
+        image: require("../assets/images/exercices/bench_dips.jpg"),
+      },
+      {
+        name: "Over Head Tricep Extension",
+        image: require("../assets/images/exercices/over-head_tricep_extension.jpg"),
+      },
+      {
+        name: "Tricep Extension",
+        image: require("../assets/images/exercices/tricep_extension.jpg"),
+      },
+      {
+        name: "Tricep Kickback",
+        image: require("../assets/images/exercices/tricep_kickback.gif"),
+      },
+      {
+        name: "Skull Crushers",
+        image: require("../assets/images/exercices/skull_crushers.gif"),
+      },
+    ],
     rest: "48 h",
-    safety: "Garder les coudes stables.",
+    safety: "Garder les coudes alignés et éviter les mouvements brusques.",
   },
 
   forearm: {
@@ -99,9 +159,26 @@ const MUSCLE_INFO: Record<string, MuscleInfo> = {
     scientific: "Musculi antebrachii",
     description: "Groupe musculaire de l’avant-bras.",
     functions: ["Prise", "Flexion/extension du poignet"],
-    exercises: [],
+    exercises: [
+      {
+        name: "Forearm Curl Bar",
+        image: require("../assets/images/exercices/forearm_curl_bar.webp"),
+      },
+      {
+        name: "Forearm Curl Dumbbell",
+        image: require("../assets/images/exercices/forearm_curl_dumbbell.gif"),
+      },
+      {
+        name: "Reverse Curls",
+        image: require("../assets/images/exercices/reverse_curls.gif"),
+      },
+      {
+        name: "Reverse Forearm Curl",
+        image: require("../assets/images/exercices/reverse_forearm_curl.gif"),
+      },
+    ],
     rest: "24 à 48 h",
-    safety: "Ne pas surcharger les poignets.",
+    safety: "Ne pas surcharger les poignets et garder un mouvement contrôlé.",
   },
 
   abs: {
@@ -109,9 +186,26 @@ const MUSCLE_INFO: Record<string, MuscleInfo> = {
     scientific: "Rectus abdominis",
     description: "Muscles de la paroi abdominale avant.",
     functions: ["Flexion du tronc", "Stabilisation"],
-    exercises: [],
+    exercises: [
+      {
+        name: "Cable Crunch",
+        image: require("../assets/images/exercices/cable_crunch.gif"),
+      },
+      {
+        name: "Machine Crunch",
+        image: require("../assets/images/exercices/machine_crunch.gif"),
+      },
+      {
+        name: "Leg Raise",
+        image: require("../assets/images/exercices/leg_raise.gif"),
+      },
+      {
+        name: "Sit Ups",
+        image: require("../assets/images/exercices/sit_ups.gif"),
+      },
+    ],
     rest: "24 à 48 h",
-    safety: "Éviter de tirer sur le cou.",
+    safety: "Éviter de tirer sur le cou et garder le bas du dos sous contrôle.",
   },
 
   obliques: {
@@ -119,69 +213,242 @@ const MUSCLE_INFO: Record<string, MuscleInfo> = {
     scientific: "Obliquus externus et internus abdominis",
     description: "Muscles latéraux de l’abdomen.",
     functions: ["Rotation du tronc", "Inclinaison latérale"],
-    exercises: [],
+    exercises: [
+      {
+        name: "Oblique Crunch",
+        image: require("../assets/images/exercices/oblique_crunch.gif"),
+      },
+      {
+        name: "Oblique Side Bend",
+        image: require("../assets/images/exercices/oblique_side_bend.gif"),
+      },
+    ],
     rest: "24 à 48 h",
-    safety: "Contrôler les rotations.",
+    safety: "Contrôler les rotations et éviter l’élan.",
   },
 
   quadriceps: {
     title: "Quadriceps",
     scientific: "Quadriceps femoris",
-    description: "Muscles à l’avant de la cuisse.",
-    functions: ["Extension du genou"],
-    exercises: [],
+    description: "Muscles situés à l’avant de la cuisse.",
+    functions: ["Extension du genou", "Stabilisation de la jambe"],
+    exercises: [
+      {
+        name: "Leg Extension",
+        image: require("../assets/images/exercices/leg_extension.gif"),
+      },
+      {
+        name: "Dumbbell Bulgarian Split Squat",
+        image: require("../assets/images/exercices/dumbbell_bulgarian_split_squat.gif"),
+      },
+      {
+        name: "Leg Press",
+        image: require("../assets/images/exercices/leg_press.gif"),
+      },
+    ],
     rest: "48 à 72 h",
-    safety: "Aligner genoux et pieds.",
+    safety:
+      "Garder les genoux alignés avec les pieds et contrôler la descente.",
   },
 
   calves: {
     title: "Mollets",
     scientific: "Gastrocnemius et soleus",
-    description: "Muscles de la jambe.",
-    functions: ["Flexion plantaire"],
-    exercises: [],
+    description: "Muscles de la jambe responsables de la flexion plantaire.",
+    functions: ["Flexion plantaire", "Stabilité à la marche et à la course"],
+    exercises: [
+      {
+        name: "Calf Raises",
+        image: require("../assets/images/exercices/calf_raises.gif"),
+      },
+      {
+        name: "Seated Calf Raises",
+        image: require("../assets/images/exercices/seated_calf_raises.gif"),
+      },
+    ],
     rest: "24 à 48 h",
-    safety: "Faire une amplitude complète sans rebond.",
+    safety: "Faire une amplitude complète sans rebond brusque.",
   },
 
   "upper-back": {
     title: "Haut du dos",
-    scientific: "Trapezius / upper back",
-    description: "Partie supérieure du dos.",
-    functions: ["Stabilité scapulaire", "Extension et rétraction"],
-    exercises: [],
+    scientific: "Trapezius / upper back / latissimus dorsi",
+    description: "Région supérieure du dos, impliquée dans la stabilité scapulaire et le tirage.",
+    functions: ["Rétraction scapulaire", "Adduction", "Stabilité du haut du dos"],
+    exercises: [
+      {
+        name: "Cable Row",
+        image: require("../assets/images/exercices/cable_row.gif"),
+      },
+      {
+        name: "Dumbbell Row",
+        image: require("../assets/images/exercices/dumbbell_row.jpg"),
+      },
+      {
+        name: "Laying Dumbbell Row",
+        image: require("../assets/images/exercices/laying_dumbbell_row.gif"),
+      },
+      {
+        name: "Lat Pulldown",
+        image: require("../assets/images/exercices/lat_pulldown.jpg"),
+      },
+      {
+        name: "Pull Up",
+        image: require("../assets/images/exercices/pull_up.gif"),
+      },
+      {
+        name: "T-Bar Row",
+        image: require("../assets/images/exercices/t-bar_row.gif"),
+      },
+    ],
     rest: "48 à 72 h",
-    safety: "Garder la colonne neutre.",
+    safety: "Garder la colonne neutre et éviter de tirer avec le bas du dos.",
   },
 
   "lower-back": {
     title: "Bas du dos",
     scientific: "Erector spinae / lower back",
-    description: "Région lombaire et muscles érecteurs.",
-    functions: ["Extension du tronc", "Stabilisation"],
-    exercises: [],
+    description: "Région lombaire et muscles érecteurs de la colonne.",
+    functions: ["Extension du tronc", "Stabilisation lombaire"],
+    exercises: [
+      {
+        name: "Dumbbell Romanian Deadlift",
+        image: require("../assets/images/exercices/dumbbell_rdl.gif"),
+      },
+      {
+        name: "Stiff Leg Deadlift",
+        image: require("../assets/images/exercices/sldl.gif"),
+      },
+    ],
     rest: "48 à 72 h",
-    safety: "Protéger le bas du dos et éviter l’hyperextension.",
+    safety:
+      "Protéger le bas du dos, garder la colonne neutre et éviter l’hyperextension.",
   },
 
   hamstring: {
     title: "Ischio-jambiers",
     scientific: "Hamstrings",
-    description: "Muscles à l’arrière de la cuisse.",
+    description: "Muscles situés à l’arrière de la cuisse.",
     functions: ["Flexion du genou", "Extension de hanche"],
-    exercises: [],
+    exercises: [
+      {
+        name: "Laying Leg Curls",
+        image: require("../assets/images/exercices/laying_leg_curls.gif"),
+      },
+      {
+        name: "Seated Leg Curls",
+        image: require("../assets/images/exercices/seated_leg_curls.gif"),
+      },
+      {
+        name: "Leg Press",
+        image: require("../assets/images/exercices/leg_press.gif"),
+      },
+      {
+        name: "Dumbbell Romanian Deadlift",
+        image: require("../assets/images/exercices/dumbbell_rdl.gif"),
+      },
+      {
+        name: "Stiff Leg Deadlift",
+        image: require("../assets/images/exercices/sldl.gif"),
+      },
+    ],
     rest: "48 à 72 h",
-    safety: "Contrôler la descente et protéger le bas du dos.",
+    safety: "Contrôler la descente et éviter les mouvements brusques.",
   },
 
   gluteal: {
     title: "Fessiers",
     scientific: "Gluteus maximus / medius",
     description: "Muscles de la région glutéale.",
-    functions: ["Extension de hanche", "Stabilisation du bassin"],
-    exercises: [],
+    functions: [
+      "Extension de hanche",
+      "Stabilisation du bassin",
+      "Abduction de hanche",
+    ],
+    exercises: [
+      {
+        name: "Hip Thrust",
+        image: require("../assets/images/exercices/hip_thrust.gif"),
+      },
+      {
+        name: "Cable Kick Back",
+        image: require("../assets/images/exercices/cable_kick_back.gif"),
+      },
+      {
+        name: "Abductors",
+        image: require("../assets/images/exercices/abductors.gif"),
+      },
+      {
+        name: "Dumbbell Bulgarian Split Squat",
+        image: require("../assets/images/exercices/dumbbell_bulgarian_split_squat.gif"),
+      },
+    ],
     rest: "48 à 72 h",
-    safety: "Ne pas cambrer excessivement le bas du dos.",
+    safety:
+      "Garder le bassin stable et éviter de cambrer excessivement le bas du dos.",
+  },
+
+  adductors: {
+    title: "Adducteurs / Inner Thighs",
+    scientific: "Adductor longus, brevis, magnus",
+    description:
+      "Muscles situés à l’intérieur des cuisses, visibles à l’avant et importants pour la stabilité des jambes.",
+    functions: [
+      "Adduction de la hanche",
+      "Stabilisation du bassin",
+      "Contrôle des jambes",
+    ],
+    exercises: [
+      {
+        name: "Adductors",
+        image: require("../assets/images/exercices/adductors.gif"),
+      },
+    ],
+    rest: "48 h",
+    safety:
+      "Garder un mouvement contrôlé et éviter de fermer les jambes brusquement.",
+  },
+
+  trapezius: {
+    title: "Trapèzes",
+    scientific: "Trapezius",
+    description:
+      "Muscles du haut du dos et du cou, responsables de la stabilité et du mouvement des épaules.",
+    functions: [
+      "Élévation des épaules",
+      "Stabilité scapulaire",
+      "Rétraction scapulaire",
+    ],
+    exercises: [
+      {
+        name: "Shrugs",
+        image: require("../assets/images/exercices/shrugs.gif"),
+      },
+    ],
+    rest: "48 h",
+    safety:
+      "Éviter de rouler les épaules et contrôler la montée/descente.",
+  },
+
+  traps: {
+    title: "Trapèzes",
+    scientific: "Trapezius",
+    description:
+      "Muscles du haut du dos et du cou, responsables de la stabilité et du mouvement des épaules.",
+    functions: [
+      "Élévation des épaules",
+      "Stabilité scapulaire",
+      "Rétraction scapulaire",
+    ],
+    exercises: [
+      {
+        name: "Shrugs",
+        image: require("../assets/images/exercices/shrugs.gif"),
+      },
+    ],
+    rest: "48 h",
+    safety:
+      "Éviter de rouler les épaules et contrôler la montée/descente.",
   },
 };
 
@@ -193,6 +460,7 @@ const FRONT_BUTTONS = [
   { slug: "abs", label: "Abdos" },
   { slug: "obliques", label: "Obliques" },
   { slug: "quadriceps", label: "Quadriceps" },
+  { slug: "adductors", label: "Intérieur des cuisses" },
   { slug: "calves", label: "Mollets" },
 ] as const;
 
@@ -200,10 +468,12 @@ const BACK_BUTTONS = [
   { slug: "deltoids", label: "Épaules (arrière)" },
   { slug: "triceps", label: "Triceps" },
   { slug: "forearm", label: "Avant-bras" },
+  { slug: "trapezius", label: "Trapèzes" },
   { slug: "upper-back", label: "Haut du dos" },
   { slug: "lower-back", label: "Bas du dos" },
   { slug: "gluteal", label: "Fessiers" },
   { slug: "hamstring", label: "Ischio-jambiers" },
+  { slug: "adductors", label: "Intérieur des cuisses" },
   { slug: "calves", label: "Mollets" },
 ] as const;
 
@@ -214,8 +484,9 @@ export default function MusculationScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
-  const selectedInfo = selectedPart
-    ? MUSCLE_INFO[selectedPart.slug as keyof typeof MUSCLE_INFO]
+  const selectedSlug = selectedPart?.slug;
+  const selectedInfo = selectedSlug
+    ? MUSCLE_INFO[selectedSlug as keyof typeof MUSCLE_INFO]
     : null;
 
   const highlightedData = useMemo(() => {
