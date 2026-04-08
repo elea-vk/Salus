@@ -37,9 +37,9 @@ export default function Index() {
 
           <Pressable
             style={styles.pageButton}
-            onPress={() => router.push("/alimentation")}
+            onPress={() => router.push("/activite")}
           >
-            <Ionicons name="restaurant-outline" size={41} color={Couleurs.secondary} />
+            <Ionicons name="calendar-outline" size={41} color={Couleurs.secondary} />
           </Pressable>
         </View>
 
