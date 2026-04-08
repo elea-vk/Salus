@@ -180,18 +180,27 @@ export async function databaseStress() {
         CREATE TABLE IF NOT EXISTS stress(
             id INTEGER PRIMARY KEY NOT NULL,
             date TEXT NOT NULL,
-            niveau TEXT NOT NULL
+            niveau TEXT NOT NULL,
+            niveauAssocie TEXT NOT NULL
         );    
     `)
     return dbStress
 }
 
-export async function ajouterStress(db : any, date : string, niveau : number) {
-    return db.runAsync ('INSERT INTO stress')
+export async function ajouterStress(db : any, date : string, niveau : number, niveauAssocie : number) {
+    return db.runAsync ('INSERT INTO stress(date,niveau,niveauAssocie) VALUES (?,?,?)', [date,niveau,niveauAssocie])
 }
 
 export async function recupererTousStress (db : any){
     return db.runAsync ('SELECT * FROM stress ORDER BY date DESC')
+}
+
+export async function supprimerStress (db : any, date : string){
+    return db.runAsync ('DELETE FROM stress WHERE date =?', date)
+}
+
+export async function supprimerTousStress (db : any){
+    return db.runAsync ('DELETE FROM stress')
 }
 
 //database alimentation 
