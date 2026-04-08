@@ -95,7 +95,9 @@ export default function Index() {
           <Ionicons name="settings-outline" size={32} color={Couleurs.primary} />
         </Pressable>
 
-        <Pressable style={styles.bottomButton}>
+        <Pressable style={styles.bottomButton}
+          onPress={()=>router.push("/utilisateur")}
+        >
           <Ionicons name="person-outline" size={32} color={Couleurs.primary} />
         </Pressable>
 

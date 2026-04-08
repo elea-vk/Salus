@@ -4,7 +4,7 @@ export class Sommeil {
     heure_lever : Date
     temps_recommende : number
 
-    constructor (date : Date, heure_coucher : Date, heure_lever : Date, temps_recommende : number){
+    constructor (date : Date, heure_coucher : Date, heure_lever : Date){
         this.date = date
         this.heure_coucher = heure_coucher
         this.heure_lever = heure_lever
