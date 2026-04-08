@@ -547,7 +547,7 @@ export default function MusculationScreen() {
            side={viewSide}
            scale={1.72}
            border="#2f2f2f"
-           defaultFill="#f3f3f3"
+           defaultFill="#efb6d4"
            defaultStroke="#2f2f2f"
            defaultStrokeWidth={1}
          />
