@@ -126,8 +126,8 @@ export async function databaseJournal() {
     `)
     return dbJournal
 }
-export async function ajouterEntree(db : any, date : string, heures : string, quantite : number) {
-    return db.runAsync ('INSERT INTO journal(date, heures, contenu) VALUES (?,?,?)', [date,heures,quantite])
+export async function ajouterEntree(db : any, date : string, heures : string, contenu : string) {
+    return db.runAsync ('INSERT INTO journal(date, heures, contenu) VALUES (?,?,?)', [date,heures,contenu])
 }
 
 export async function recupererEntree(db : any, date : string) {
@@ -157,19 +157,45 @@ export async function databaseUtilisateur() {
     await dbUtilisateur.execAsync (`
         CREATE TABLE IF NOT EXISTS utilisateur(
             id INTEGER PRIMARY KEY NOT NULL,
-            email TEXT NOT NULL,
-            motDePasse TEXT NOT NULL
+            prenom TEXT NOT NULL,
+            dateDeNaissance TEXT NOT NULL
         );    
     `)
     return dbUtilisateur
 }
 
-export async function modifierMotDePasse(db : any, nouveauMotDePasse : string) {
-    return db.runAsync ('UPDATE utilisateur SET motDePasse =? WHERE id = ?)', [nouveauMotDePasse])
+export async function ajouterUtilisateur (db : any, prenom : string, dateDeNaissance : string, age : number){
+    return db.runAsync ('INSERT INTO utilisateur (prenom,dateDeNaissance) VALUES (?,?)', [prenom,dateDeNaissance,age])
+}
+export async function modifierDateDeNaissance(db : any, id : number, dateDeNaissance : string) {
+    return db.runAsync ('UPDATE utilisateur SET dateDeNaissance WHERE id =?', [dateDeNaissance,id])
 }
 
-export async function supprimerCompte(db : any, email : string) {
-    return db.runAsync ('DELETE FROM utilisateur WHERE email =?', email)
+export async function modifierPrenom(db : any, id : number, prenom : string) {
+    return db.runAsync ('UPDATE utilisateur SET prenom =? WHERE id =?', [prenom,id])
+}
+
+export async function age(db : any, id : number, age : number) {
+    return db.runAsync ('UPDATE utilisateur SET age =? WHERE id =?', [age,id])
+}
+
+
+export async function dataBaseSuivi() {
+    const dbSuivi = await SQLite.openDatabaseAsync ('dbSuivi')
+    await dbSuivi.execAsync (`
+        CREATE TABLE IF NOT EXISTS suivi(
+        id INTEGER PRIMARY KEY NOT NULL,
+        utilisateur_id INTEGER,
+        date TEXT NOT NULL,
+        poids REAL,
+        taille REAL,
+        FOREIGN KEY(utilisateur_id) REFERENCES utilisateur(id)
+        );
+    `)
+    return dbSuivi
+}
+export async function ajouterMesure(db: any, utilisateur_id: number, date: string, poids: number, taille: number) {
+    return db.runAsync('INSERT INTO suivi (utilisateur_id, date, poids, taille) VALUES (?,?,?,?)',[utilisateur_id, date, poids, taille]);
 }
 
 
@@ -180,19 +206,19 @@ export async function databaseStress() {
         CREATE TABLE IF NOT EXISTS stress(
             id INTEGER PRIMARY KEY NOT NULL,
             date TEXT NOT NULL,
-            niveau TEXT NOT NULL,
+            niveau INTEGER NOT NULL,
             niveauAssocie TEXT NOT NULL
         );    
     `)
     return dbStress
 }
 
-export async function ajouterStress(db : any, date : string, niveau : number, niveauAssocie : number) {
+export async function ajouterStress(db : any, date : string, niveau : number, niveauAssocie : string) {
     return db.runAsync ('INSERT INTO stress(date,niveau,niveauAssocie) VALUES (?,?,?)', [date,niveau,niveauAssocie])
 }
 
 export async function recupererTousStress (db : any){
-    return db.runAsync ('SELECT * FROM stress ORDER BY date DESC')
+    return db.getAllAsync ('SELECT * FROM stress ORDER BY date DESC')
 }
 
 export async function supprimerStress (db : any, date : string){
@@ -231,7 +257,7 @@ export async function databaseHabitudes () {
             id INTERGER PRIMARY KEY NOT NULL,
             date TEXT NOT NULL,
             contenu TEXT NOT NULL,
-            faite BOOLEAN NOT NULL
+            faite INTEGER NOT NULL
         )
         
     `)
@@ -242,7 +268,7 @@ export async function databaseHabitudesFaites (){
     const dbHabitudesFaites = await SQLite.openDatabaseAsync ('dataHabitudesFaites')
     await dbHabitudesFaites.execAsync (`
         CREATE TABLE IF NOT EXISTS habitudesFaites (
-        id INTERFER PRIMARY KEY NOT NULL,
+        id INTEGER PRIMARY KEY NOT NULL,
         dateFaite TEXT NOT NULL,
         contenu TEXT NOT NULL
         )        
@@ -262,7 +288,7 @@ export async function supprimerToutesHabitudes(db : any) {
 }
 
 export async function recupererHabitude(db : any, contenu : string) {
-    return db.runAsync ('SELECT FROM habitudes WHERE contenu = ?', contenu)
+    return db.runAsync ('SELECT * FROM habitudes WHERE contenu = ?', contenu)
 }
 export async function creerTrackingHabitudesFaites(db : any, contenu : string, faite : boolean) {
     return db.runAsync (`INSERT INTO habitudesFaites SELECT * FROM habitudes WHERE faite = true`, faite)
