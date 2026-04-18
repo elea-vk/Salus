@@ -1,6 +1,6 @@
 import {Text, TouchableOpacity, View } from "react-native";
 import { useEffect, useState } from "react";
-import { ajouterNuit, dataBaseSommeil, recupererToutesNuits, supprimerToutesNuits } from "@/data/dataUtilisateur";
+import { ajouterNuit, initDatabase, recupererToutesNuits, supprimerToutesNuits } from "@/data/dataAPP";
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { StyleSheet } from "react-native";
 import { Sommeil } from "@/src/sommeil";
@@ -22,7 +22,7 @@ export default function SommeilPage() {
   //ouverture de la base de donées
   useEffect (()=>{
     async function init() {
-      const database = await dataBaseSommeil()
+      const database = await initDatabase()
       setDb (database)
     }
     init()

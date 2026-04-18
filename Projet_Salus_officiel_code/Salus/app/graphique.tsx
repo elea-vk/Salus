@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View} from "react-native"
 import { LineChart } from "react-native-gifted-charts" //importation depuis https://github.com/Abhinandan-Kushwaha/react-native-gifted-charts/tree/master
 import { useEffect } from "react";
-import { dataBaseSommeil,recupererToutesNuits } from "@/data/dataUtilisateur";
+import { initDatabase,recupererToutesNuits } from "@/data/dataAPP";
 import { StyleSheet,Pressable } from "react-native";
 
 //documentation graphique : https://gifted-charts.web.app/linechart/#negative
@@ -15,7 +15,7 @@ const Graphique = () => {
 
     useEffect (()=>{
         async function init() {
-          const database = await dataBaseSommeil() || []
+          const database = await initDatabase() || []
           setDb (database)
           await recupererDonnees(database)
         }

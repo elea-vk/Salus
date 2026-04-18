@@ -1,9 +1,9 @@
-import * as SQLite from 'expo-sqlite';
+//import * as SQLite from 'expo-sqlite';
 
 //https://www.w3schools.com/sql/sql_delete.asp
 
 //database sommeil
-export async function dataBaseSommeil() {
+/*export async function dataBaseSommeil() {
     
     const dbSommeil = await SQLite.openDatabaseAsync ('dataSommeil')
     await dbSommeil.execAsync (`
@@ -300,4 +300,4 @@ export async function recupererHabitudeFaite(db : any, contenu : string) {
 
 export async function recupererToutesHabitudesFaites (db : any) {
     return db.runAsync ('SELECT * FROM habitudesFaites')
-}
+}*/
