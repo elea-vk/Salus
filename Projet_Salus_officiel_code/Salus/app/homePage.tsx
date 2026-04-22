@@ -12,7 +12,7 @@ export default function Index() {
       {/* --- BAR DU HAUT (date) --- */}
       <View style={styles.dateBar}>
         <Pressable style={styles.arrowBtn}>
-          <Ionicons name="caret-back-outline" size={28} color = {Couleurs.secondary} />
+          <Ionicons name="caret-back-outline" size={28} color={Couleurs.secondary} />
         </Pressable>
 
         <Text style={styles.dateTxt}>₊︵‿  DATE  ‿︵₊</Text>
@@ -22,10 +22,11 @@ export default function Index() {
         </Pressable>
       </View>
 
-    <View style={styles.diviseur1} />
+      <View style={styles.diviseur1} />
 
       {/* --- MILIEU (pages) --- */}
       <View style={styles.grid}>
+
         {/* Rangée 1 */}
         <View style={styles.row}>
           <Pressable
@@ -47,7 +48,7 @@ export default function Index() {
         <View style={styles.row}>
           <Pressable
             style={styles.pageButton}
-            onPress={() => router.push("/sommeilPage")}
+            onPress={() => router.push("/sommeiltest")}
           >
             <Ionicons name="moon-outline" size={41} color={Couleurs.secondary} />
           </Pressable>
@@ -58,16 +59,15 @@ export default function Index() {
           >
             <Ionicons name="barbell-outline" size={41} color={Couleurs.secondary} />
           </Pressable>
+
+          {/* 🔥 NOUVEAU BOUTON ALIMENTATION */}
           <Pressable
             style={styles.pageButton}
-            onPress ={()=> router.push("/test_timePicker")}
+            onPress={() => router.push("/alimentation")}
           >
-        <Ionicons name="arrow-down" size={41} color={Couleurs.secondary} />
-       </Pressable>
-
+            <Ionicons name="restaurant-outline" size={41} color={Couleurs.secondary} />
+          </Pressable>
         </View>
-      
-       
 
         {/* Rangée 3 */}
         <View style={styles.row}>
@@ -85,6 +85,7 @@ export default function Index() {
             <Ionicons name="checkmark-circle-outline" size={41} color={Couleurs.secondary} />
           </Pressable>
         </View>
+
       </View>
 
       <View style={styles.diviseur2} />
@@ -95,8 +96,9 @@ export default function Index() {
           <Ionicons name="settings-outline" size={32} color={Couleurs.primary} />
         </Pressable>
 
-        <Pressable style={styles.bottomButton}
-          onPress={()=>router.push("/utilisateur")}
+        <Pressable
+          style={styles.bottomButton}
+          onPress={() => router.push("/utilisateur")}
         >
           <Ionicons name="person-outline" size={32} color={Couleurs.primary} />
         </Pressable>
@@ -109,13 +111,12 @@ export default function Index() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:Couleurs.background,
+    backgroundColor: Couleurs.background,
     padding: 20,
-    justifyContent: "space-between", // space between top, middle, bottom
+    justifyContent: "space-between",
   },
 
   // --- HAUT ---
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-     marginBottom: 0,
+    marginBottom: 0,
   },
   dateTxt: {
     fontSize: 22,
@@ -137,22 +138,22 @@ const styles = StyleSheet.create({
   },
 
   diviseur1: {
-  height: 5,
-  backgroundColor: Couleurs.secondary,
-  alignSelf: "stretch",
-  marginBottom: 20,
-},
+    height: 5,
+    backgroundColor: Couleurs.secondary,
+    alignSelf: "stretch",
+    marginBottom: 20,
+  },
 
   // --- MILIEU ---
   grid: {
     justifyContent: "center",
-    gap: 18, // espace entre rangées
+    gap: 18,
   },
   row: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 25, // espace entre colonnes
-    marginBottom: 10, // closer spacing between buttons
+    gap: 25,
+    marginBottom: 10,
   },
   pageButton: {
     width: 125,
@@ -168,12 +169,12 @@ const styles = StyleSheet.create({
   },
 
   diviseur2: {
-  height: 5,
-  backgroundColor: Couleurs.secondary,
-  opacity: 1,
-  alignSelf: "stretch",
-  marginBottom: 2,
-},
+    height: 5,
+    backgroundColor: Couleurs.secondary,
+    opacity: 1,
+    alignSelf: "stretch",
+    marginBottom: 2,
+  },
 
   // --- BAS ---
   bottomBar: {

@@ -1,0 +1,1240 @@
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import Svg, { Circle } from "react-native-svg";
+
+// -------------------------
+// Types
+// -------------------------
+
+type OngletAlimentation = "journal" | "calculateur";
+type TypeRepas = "dejeuner" | "diner" | "souper" | "collation";
+type Sexe = "homme" | "femme";
+type NiveauActivite =
+  | "sedentaire"
+  | "leger"
+  | "modere"
+  | "eleve"
+  | "tres_eleve";
+type TypeObjectifPoids = "perdre" | "maintenir" | "gagner";
+
+type EntreeRepas = {
+  id: string;
+  nom: string;
+  calories: string;
+  proteines: string;
+  glucides: string;
+  lipides: string;
+  autreInfo: string;
+  typeRepas: TypeRepas;
+};
+
+type ObjectifsJournalier = {
+  calories: string;
+  proteines: string;
+  glucides: string;
+  lipides: string;
+  objectifPoids: TypeObjectifPoids;
+};
+
+type DonneesPersonnelles = {
+  poids: string;
+  age: string;
+  sexe: Sexe;
+  taille: string;
+  niveauActivite: NiveauActivite;
+};
+
+type StrategieCalories = {
+  titre: string;
+  calories: number;
+  variationKgParSemaine: number;
+  description: string;
+};
+
+// -------------------------
+// Constantes
+// -------------------------
+
+const CLE_REPAS = "@salus_alimentation_repas";
+const CLE_OBJECTIFS = "@salus_alimentation_objectifs";
+const CLE_DONNEES_PERSONNELLES = "@salus_alimentation_donnees_personnelles";
+
+const TYPES_REPAS: TypeRepas[] = ["dejeuner", "diner", "souper", "collation"];
+
+const ETIQUETTES_REPAS: Record<TypeRepas, string> = {
+  dejeuner: "Déjeuner",
+  diner: "Dîner",
+  souper: "Souper",
+  collation: "Collation",
+};
+
+const ETIQUETTES_ACTIVITE: Record<NiveauActivite, string> = {
+  sedentaire: "Sédentaire",
+  leger: "Léger",
+  modere: "Modéré",
+  eleve: "Élevé",
+  tres_eleve: "Très élevé",
+};
+
+const MULTIPLICATEURS_ACTIVITE: Record<NiveauActivite, number> = {
+  sedentaire: 1.2,
+  leger: 1.375,
+  modere: 1.55,
+  eleve: 1.725,
+  tres_eleve: 1.9,
+};
+
+// -------------------------
+// Fonctions utilitaires
+// -------------------------
+
+function creerIdUnique() {
+  return `${Date.now()}-${Math.random()}`;
+}
+
+function creerEntreeVide(typeRepas: TypeRepas): EntreeRepas {
+  return {
+    id: creerIdUnique(),
+    nom: "",
+    calories: "",
+    proteines: "",
+    glucides: "",
+    lipides: "",
+    autreInfo: "",
+    typeRepas,
+  };
+}
+
+function convertirEnNombre(valeur: string): number {
+  const nombre = Number(valeur.replace(",", "."));
+  return Number.isFinite(nombre) ? nombre : 0;
+}
+
+function arrondir(valeur: number, decimales = 0) {
+  const facteur = Math.pow(10, decimales);
+  return Math.round(valeur * facteur) / facteur;
+}
+
+// Calcule le métabolisme de base avec la formule de Mifflin-St Jeor.
+function calculerBMR(donnees: DonneesPersonnelles): number {
+  const poids = convertirEnNombre(donnees.poids);
+  const taille = convertirEnNombre(donnees.taille);
+  const age = convertirEnNombre(donnees.age);
+
+  if (!poids || !taille || !age) return 0;
+
+  if (donnees.sexe === "homme") {
+    return 10 * poids + 6.25 * taille - 5 * age + 5;
+  }
+
+  return 10 * poids + 6.25 * taille - 5 * age - 161;
+}
+
+// Calcule le TDEE standard selon le niveau d'activité.
+function calculerTDEE(donnees: DonneesPersonnelles): number {
+  const bmr = calculerBMR(donnees);
+  const multiplicateur = MULTIPLICATEURS_ACTIVITE[donnees.niveauActivite] ?? 1.2;
+  return bmr * multiplicateur;
+}
+
+// Génère différentes stratégies caloriques autour du maintien.
+function genererStrategiesCalories(tdee: number): StrategieCalories[] {
+  if (!tdee) return [];
+
+  return [
+    {
+      titre: "Perte agressive",
+      calories: Math.max(1200, arrondir(tdee - 750)),
+      variationKgParSemaine: -0.68,
+      description: "Déficit élevé pour perdre plus rapidement.",
+    },
+    {
+      titre: "Perte normale",
+      calories: Math.max(1200, arrondir(tdee - 500)),
+      variationKgParSemaine: -0.45,
+      description: "Déficit modéré plus facile à soutenir.",
+    },
+    {
+      titre: "Maintien",
+      calories: arrondir(tdee),
+      variationKgParSemaine: 0,
+      description: "Apport estimé pour maintenir le poids.",
+    },
+    {
+      titre: "Gain normal",
+      calories: arrondir(tdee + 250),
+      variationKgParSemaine: 0.23,
+      description: "Surplus modéré pour prendre du poids lentement.",
+    },
+    {
+      titre: "Gain agressif",
+      calories: arrondir(tdee + 500),
+      variationKgParSemaine: 0.45,
+      description: "Surplus plus élevé pour une prise plus rapide.",
+    },
+  ];
+}
+
+// Détermine le message d'état selon le total actuel, l'objectif et le type d'objectif.
+function obtenirStatutCalories(
+  totalCalories: number,
+  objectifCalories: number,
+  objectifPoids: TypeObjectifPoids
+) {
+  if (!objectifCalories) {
+    return "Ajoute un objectif calorique pour suivre ta progression.";
+  }
+
+  if (objectifPoids === "maintenir") {
+    const difference = totalCalories - objectifCalories;
+    if (Math.abs(difference) <= 50) return "Tu es très proche de ton objectif de maintien.";
+    if (difference < 0) return "Tu n’as pas encore atteint ton objectif de maintien.";
+    return "Tu as dépassé ton objectif de maintien.";
+  }
+
+  if (objectifPoids === "perdre") {
+    if (totalCalories < objectifCalories) return "Tu es encore sous ta limite calorique de perte de poids.";
+    if (totalCalories === objectifCalories) return "Tu as atteint exactement ta cible de perte de poids.";
+    return "Tu as dépassé la limite prévue pour la perte de poids.";
+  }
+
+  if (totalCalories < objectifCalories) return "Tu n’as pas encore atteint ton objectif de prise de poids.";
+  if (totalCalories === objectifCalories) return "Tu as atteint exactement ton objectif de prise de poids.";
+  return "Tu as dépassé ton objectif de prise de poids.";
+}
+
+// -------------------------
+// Composant cercle de progression
+// -------------------------
+
+type CercleProgressionProps = {
+  valeurActuelle: number;
+  valeurCible: number;
+  titre: string;
+  sousTitre?: string;
+  taille?: number;
+  epaisseur?: number;
+  couleur?: string;
+};
+
+function CercleProgression({
+  valeurActuelle,
+  valeurCible,
+  titre,
+  sousTitre,
+  taille = 170,
+  epaisseur = 18,
+  couleur = "#ff6bdf",
+}: CercleProgressionProps) {
+  const rayon = (taille - epaisseur) / 2;
+  const circonference = 2 * Math.PI * rayon;
+  const ratio = valeurCible > 0 ? Math.min(valeurActuelle / valeurCible, 1) : 0;
+  const depassement = valeurCible > 0 && valeurActuelle > valeurCible;
+  const offset = circonference * (1 - ratio);
+
+  return (
+    <View style={[styles.conteneurCercle, { width: taille, height: taille }]}>
+      <Svg width={taille} height={taille}>
+        <Circle
+          cx={taille / 2}
+          cy={taille / 2}
+          r={rayon}
+          stroke="#5a1450"
+          strokeWidth={epaisseur}
+          fill="none"
+        />
+        <Circle
+          cx={taille / 2}
+          cy={taille / 2}
+          r={rayon}
+          stroke={depassement ? "#ff6bdf" : couleur}
+          strokeWidth={epaisseur}
+          fill="none"
+          strokeDasharray={`${circonference} ${circonference}`}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          rotation={-90}
+          origin={`${taille / 2}, ${taille / 2}`}
+        />
+      </Svg>
+
+      <View style={styles.contenuCercle}>
+        <Text style={styles.pourcentageCercle}>
+          {valeurCible > 0 ? `${Math.round((valeurActuelle / valeurCible) * 100)}%` : "0%"}
+        </Text>
+        <Text style={styles.valeurCercle}>
+          {arrondir(valeurActuelle)}
+          {sousTitre ? ` ${sousTitre}` : ""}
+        </Text>
+        <Text style={styles.titreCercle}>{titre}</Text>
+      </View>
+    </View>
+  );
+}
+
+// -------------------------
+// Écran principal
+// -------------------------
+
+export default function Alimentation() {
+  const [ongletActif, setOngletActif] = useState<OngletAlimentation>("journal");
+
+  const [entreesRepas, setEntreesRepas] = useState<EntreeRepas[]>([]);
+  const [objectifs, setObjectifs] = useState<ObjectifsJournalier>({
+    calories: "2000",
+    proteines: "150",
+    glucides: "220",
+    lipides: "70",
+    objectifPoids: "maintenir",
+  });
+
+  const [donneesPersonnelles, setDonneesPersonnelles] = useState<DonneesPersonnelles>({
+    poids: "",
+    age: "",
+    sexe: "homme",
+    taille: "",
+    niveauActivite: "modere",
+  });
+
+  // Charge les données sauvegardées localement au démarrage.
+  useEffect(() => {
+    const chargerDonnees = async () => {
+      try {
+        const [repasSauvegardes, objectifsSauvegardes, donneesSauvegardees] =
+          await Promise.all([
+            AsyncStorage.getItem(CLE_REPAS),
+            AsyncStorage.getItem(CLE_OBJECTIFS),
+            AsyncStorage.getItem(CLE_DONNEES_PERSONNELLES),
+          ]);
+
+        if (repasSauvegardes) {
+          setEntreesRepas(JSON.parse(repasSauvegardes));
+        }
+        if (objectifsSauvegardes) {
+          setObjectifs(JSON.parse(objectifsSauvegardes));
+        }
+        if (donneesSauvegardees) {
+          setDonneesPersonnelles(JSON.parse(donneesSauvegardees));
+        }
+      } catch (erreur) {
+        console.log("Erreur lors du chargement des données alimentation :", erreur);
+      }
+    };
+
+    chargerDonnees();
+  }, []);
+
+  // Sauvegarde automatiquement les entrées de repas.
+  useEffect(() => {
+    AsyncStorage.setItem(CLE_REPAS, JSON.stringify(entreesRepas)).catch((erreur) => {
+      console.log("Erreur sauvegarde repas :", erreur);
+    });
+  }, [entreesRepas]);
+
+  // Sauvegarde automatiquement les objectifs.
+  useEffect(() => {
+    AsyncStorage.setItem(CLE_OBJECTIFS, JSON.stringify(objectifs)).catch((erreur) => {
+      console.log("Erreur sauvegarde objectifs :", erreur);
+    });
+  }, [objectifs]);
+
+  // Sauvegarde automatiquement les données personnelles.
+  useEffect(() => {
+    AsyncStorage.setItem(
+      CLE_DONNEES_PERSONNELLES,
+      JSON.stringify(donneesPersonnelles)
+    ).catch((erreur) => {
+      console.log("Erreur sauvegarde données personnelles :", erreur);
+    });
+  }, [donneesPersonnelles]);
+
+  // Calcule les totaux journaliers automatiquement après chaque entrée.
+  const totaux = useMemo(() => {
+    return entreesRepas.reduce(
+      (accumulateur, entree) => {
+        accumulateur.calories += convertirEnNombre(entree.calories);
+        accumulateur.proteines += convertirEnNombre(entree.proteines);
+        accumulateur.glucides += convertirEnNombre(entree.glucides);
+        accumulateur.lipides += convertirEnNombre(entree.lipides);
+        return accumulateur;
+      },
+      { calories: 0, proteines: 0, glucides: 0, lipides: 0 }
+    );
+  }, [entreesRepas]);
+
+  const objectifCalories = convertirEnNombre(objectifs.calories);
+  const objectifProteines = convertirEnNombre(objectifs.proteines);
+  const objectifGlucides = convertirEnNombre(objectifs.glucides);
+  const objectifLipides = convertirEnNombre(objectifs.lipides);
+
+  const bmr = useMemo(() => calculerBMR(donneesPersonnelles), [donneesPersonnelles]);
+  const tdee = useMemo(() => calculerTDEE(donneesPersonnelles), [donneesPersonnelles]);
+  const strategiesCalories = useMemo(() => genererStrategiesCalories(tdee), [tdee]);
+
+  // Ajoute une nouvelle entrée de repas dans la catégorie choisie.
+  const ajouterEntree = (typeRepas: TypeRepas) => {
+    setEntreesRepas((precedent) => [...precedent, creerEntreeVide(typeRepas)]);
+  };
+
+  // Supprime une entrée spécifique.
+  const supprimerEntree = (id: string) => {
+    setEntreesRepas((precedent) => precedent.filter((entree) => entree.id !== id));
+  };
+
+  // Met à jour un champ d'une entrée de repas.
+  const mettreAJourEntree = (
+    id: string,
+    champ: keyof Omit<EntreeRepas, "id">,
+    valeur: string
+  ) => {
+    setEntreesRepas((precedent) =>
+      precedent.map((entree) =>
+        entree.id === id ? { ...entree, [champ]: valeur } : entree
+      )
+    );
+  };
+
+  // Met à jour un objectif nutritionnel.
+  const mettreAJourObjectif = (
+    champ: keyof ObjectifsJournalier,
+    valeur: string | TypeObjectifPoids
+  ) => {
+    setObjectifs((precedent) => ({ ...precedent, [champ]: valeur }));
+  };
+
+  // Met à jour les données personnelles pour le calculateur de calories.
+  const mettreAJourDonneesPersonnelles = (
+    champ: keyof DonneesPersonnelles,
+    valeur: string | Sexe | NiveauActivite
+  ) => {
+    setDonneesPersonnelles((precedent) => ({ ...precedent, [champ]: valeur }));
+  };
+
+  // Permet d'appliquer directement une stratégie calculée dans les objectifs journaliers.
+  const appliquerStrategieAuxObjectifs = (calories: number, type: TypeObjectifPoids) => {
+    setObjectifs((precedent) => ({
+      ...precedent,
+      calories: String(arrondir(calories)),
+      objectifPoids: type,
+    }));
+    setOngletActif("journal");
+  };
+
+  const statutCalories = obtenirStatutCalories(
+    totaux.calories,
+    objectifCalories,
+    objectifs.objectifPoids
+  );
+
+  return (
+    <View style={styles.ecran}>
+      <ScrollView contentContainerStyle={styles.conteneur}>
+        <Text style={styles.titre}>Alimentation</Text>
+
+        <View style={styles.barreOngletsHaut}>
+          <Pressable
+            style={[styles.boutonOngletHaut, ongletActif === "journal" && styles.boutonOngletHautActif]}
+            onPress={() => setOngletActif("journal")}
+          >
+            <Text
+              style={[styles.texteOngletHaut, ongletActif === "journal" && styles.texteOngletHautActif]}
+            >
+              Journal
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.boutonOngletHaut, ongletActif === "calculateur" && styles.boutonOngletHautActif]}
+            onPress={() => setOngletActif("calculateur")}
+          >
+            <Text
+              style={[
+                styles.texteOngletHaut,
+                ongletActif === "calculateur" && styles.texteOngletHautActif,
+              ]}
+            >
+              Calculateur
+            </Text>
+          </Pressable>
+        </View>
+
+        {ongletActif === "journal" ? (
+          <>
+            <View style={styles.carteResumeCalories}>
+              <Text style={styles.sousTitreResume}>Aujourd’hui</Text>
+              <Text style={styles.libelleResume}>Calories</Text>
+              <Text style={styles.grosNombreBleu}>{arrondir(totaux.calories)}</Text>
+              <Text style={styles.objectifResume}>sur {objectifCalories || 0}</Text>
+
+              <View style={styles.rangeePetitsCercles}>
+                <View style={styles.petitIndicateur}>
+                  <CercleProgression
+                    valeurActuelle={totaux.glucides}
+                    valeurCible={objectifGlucides || 1}
+                    titre="glucides"
+                    taille={90}
+                    epaisseur={8}
+                    couleur="#ff6bdf"
+                  />
+                  <Text style={styles.texteValeurPetit}>{arrondir(totaux.glucides)} g</Text>
+                </View>
+
+                <View style={styles.petitIndicateur}>
+                  <CercleProgression
+                    valeurActuelle={totaux.proteines}
+                    valeurCible={objectifProteines || 1}
+                    titre="protéines"
+                    taille={90}
+                    epaisseur={8}
+                    couleur="#ff6bdf"
+                  />
+                  <Text style={styles.texteValeurPetit}>{arrondir(totaux.proteines)} g</Text>
+                </View>
+
+                <View style={styles.petitIndicateur}>
+                  <CercleProgression
+                    valeurActuelle={totaux.lipides}
+                    valeurCible={objectifLipides || 1}
+                    titre="lipides"
+                    taille={90}
+                    epaisseur={8}
+                    couleur="#bf6be6"
+                  />
+                  <Text style={styles.texteValeurPetit}>{arrondir(totaux.lipides)} g</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.cartePrincipaleProgression}>
+              <CercleProgression
+                valeurActuelle={totaux.calories}
+                valeurCible={objectifCalories || 1}
+                titre="Objectif calorique"
+                sousTitre="kcal"
+                taille={240}
+                epaisseur={24}
+                couleur="#ff6bdf"
+              />
+              <Text style={styles.texteStatutCalories}>{statutCalories}</Text>
+            </View>
+
+            <View style={styles.carteSection}>
+              <Text style={styles.titreSection}>Objectifs journaliers</Text>
+
+              <View style={styles.rangeeObjectifsType}>
+                {(["perdre", "maintenir", "gagner"] as TypeObjectifPoids[]).map((type) => (
+                  <Pressable
+                    key={type}
+                    style={[
+                      styles.boutonChoix,
+                      objectifs.objectifPoids === type && styles.boutonChoixActif,
+                    ]}
+                    onPress={() => mettreAJourObjectif("objectifPoids", type)}
+                  >
+                    <Text
+                      style={[
+                        styles.texteChoix,
+                        objectifs.objectifPoids === type && styles.texteChoixActif,
+                      ]}
+                    >
+                      {type === "perdre" ? "Perdre" : type === "maintenir" ? "Maintenir" : "Gagner"}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <View style={styles.listeChampsVerticaux}>
+                <View style={styles.groupeChampVertical}>
+                  <Text style={styles.libelleChamp}>Calories</Text>
+                  <TextInput
+                    style={styles.champ}
+                    value={objectifs.calories}
+                    onChangeText={(valeur) => mettreAJourObjectif("calories", valeur)}
+                    placeholder="Calories"
+                    keyboardType="numeric"
+                    placeholderTextColor="#8c8c8c"
+                  />
+                </View>
+
+                <View style={styles.groupeChampVertical}>
+                  <Text style={styles.libelleChamp}>Protéines (g)</Text>
+                  <TextInput
+                    style={styles.champ}
+                    value={objectifs.proteines}
+                    onChangeText={(valeur) => mettreAJourObjectif("proteines", valeur)}
+                    placeholder="Protéines (g)"
+                    keyboardType="numeric"
+                    placeholderTextColor="#8c8c8c"
+                  />
+                </View>
+
+                <View style={styles.groupeChampVertical}>
+                  <Text style={styles.libelleChamp}>Glucides (g)</Text>
+                  <TextInput
+                    style={styles.champ}
+                    value={objectifs.glucides}
+                    onChangeText={(valeur) => mettreAJourObjectif("glucides", valeur)}
+                    placeholder="Glucides (g)"
+                    keyboardType="numeric"
+                    placeholderTextColor="#8c8c8c"
+                  />
+                </View>
+
+                <View style={styles.groupeChampVertical}>
+                  <Text style={styles.libelleChamp}>Lipides (g)</Text>
+                  <TextInput
+                    style={styles.champ}
+                    value={objectifs.lipides}
+                    onChangeText={(valeur) => mettreAJourObjectif("lipides", valeur)}
+                    placeholder="Lipides (g)"
+                    keyboardType="numeric"
+                    placeholderTextColor="#8c8c8c"
+                  />
+                </View>
+              </View>
+            </View>
+
+            {TYPES_REPAS.map((typeRepas) => {
+              const entreesDuType = entreesRepas.filter((entree) => entree.typeRepas === typeRepas);
+
+              return (
+                <View key={typeRepas} style={styles.carteSection}>
+                  <View style={styles.enteteRepas}>
+                    <Text style={styles.titreSection}>{ETIQUETTES_REPAS[typeRepas]}</Text>
+                    <Pressable style={styles.boutonAjouter} onPress={() => ajouterEntree(typeRepas)}>
+                      <Ionicons name="add" size={18} color="white" />
+                      <Text style={styles.texteBoutonAjouter}>Ajouter</Text>
+                    </Pressable>
+                  </View>
+
+                  {entreesDuType.length === 0 ? (
+                    <Text style={styles.texteVide}>Aucune entrée pour cette section.</Text>
+                  ) : (
+                    entreesDuType.map((entree) => (
+                      <View key={entree.id} style={styles.carteEntreeRepas}>
+                        <View style={styles.enteteCarteRepas}>
+                          <Text style={styles.titreCarteRepas}>Repas</Text>
+                          <Pressable
+                            onPress={() => supprimerEntree(entree.id)}
+                            style={styles.boutonSupprimer}
+                          >
+                            <Ionicons name="trash-outline" size={18} color="#d9534f" />
+                          </Pressable>
+                        </View>
+
+                        <TextInput
+                          style={styles.champ}
+                          value={entree.nom}
+                          onChangeText={(valeur) => mettreAJourEntree(entree.id, "nom", valeur)}
+                          placeholder="Nom de l’aliment ou du repas"
+                          placeholderTextColor="#8c8c8c"
+                        />
+
+                        <TextInput
+                          style={styles.champ}
+                          value={entree.calories}
+                          onChangeText={(valeur) => mettreAJourEntree(entree.id, "calories", valeur)}
+                          placeholder="Calories"
+                          keyboardType="numeric"
+                          placeholderTextColor="#8c8c8c"
+                        />
+
+                        <View style={styles.rangeeTroisChamps}>
+                          <TextInput
+                            style={[styles.champ, styles.champPetit]}
+                            value={entree.proteines}
+                            onChangeText={(valeur) => mettreAJourEntree(entree.id, "proteines", valeur)}
+                            placeholder="Prot."
+                            keyboardType="numeric"
+                            placeholderTextColor="#8c8c8c"
+                          />
+                          <TextInput
+                            style={[styles.champ, styles.champPetit]}
+                            value={entree.glucides}
+                            onChangeText={(valeur) => mettreAJourEntree(entree.id, "glucides", valeur)}
+                            placeholder="Gluc."
+                            keyboardType="numeric"
+                            placeholderTextColor="#8c8c8c"
+                          />
+                          <TextInput
+                            style={[styles.champ, styles.champPetit]}
+                            value={entree.lipides}
+                            onChangeText={(valeur) => mettreAJourEntree(entree.id, "lipides", valeur)}
+                            placeholder="Lip."
+                            keyboardType="numeric"
+                            placeholderTextColor="#8c8c8c"
+                          />
+                        </View>
+
+                        <TextInput
+                          style={[styles.champ, styles.champGrand]}
+                          value={entree.autreInfo}
+                          onChangeText={(valeur) => mettreAJourEntree(entree.id, "autreInfo", valeur)}
+                          placeholder="Autres infos (fibres, sodium, sucre, note personnelle, etc.)"
+                          multiline
+                          placeholderTextColor="#8c8c8c"
+                        />
+                      </View>
+                    ))
+                  )}
+                </View>
+              );
+            })}
+          </>
+        ) : (
+          <>
+            <View style={styles.carteSection}>
+              <Text style={styles.titreSection}>Données personnelles</Text>
+
+              <View style={styles.listeChampsVerticaux}>
+                <View style={styles.groupeChampVertical}>
+                  <Text style={styles.libelleChamp}>Poids (kg)</Text>
+                  <TextInput
+                    style={styles.champ}
+                    value={donneesPersonnelles.poids}
+                    onChangeText={(valeur) => mettreAJourDonneesPersonnelles("poids", valeur)}
+                    placeholder="Poids (kg)"
+                    keyboardType="numeric"
+                    placeholderTextColor="#8c8c8c"
+                  />
+                </View>
+
+                <View style={styles.groupeChampVertical}>
+                  <Text style={styles.libelleChamp}>Âge</Text>
+                  <TextInput
+                    style={styles.champ}
+                    value={donneesPersonnelles.age}
+                    onChangeText={(valeur) => mettreAJourDonneesPersonnelles("age", valeur)}
+                    placeholder="Âge"
+                    keyboardType="numeric"
+                    placeholderTextColor="#8c8c8c"
+                  />
+                </View>
+
+                <View style={styles.groupeChampVertical}>
+                  <Text style={styles.libelleChamp}>Taille (cm)</Text>
+                  <TextInput
+                    style={styles.champ}
+                    value={donneesPersonnelles.taille}
+                    onChangeText={(valeur) => mettreAJourDonneesPersonnelles("taille", valeur)}
+                    placeholder="Taille (cm)"
+                    keyboardType="numeric"
+                    placeholderTextColor="#8c8c8c"
+                  />
+                </View>
+
+                <View style={styles.groupeChampVertical}>
+                  <Text style={styles.libelleChamp}>Sexe</Text>
+                  <View style={styles.rangeeChoixCompacte}>
+                    {(["homme", "femme"] as Sexe[]).map((sexe) => (
+                      <Pressable
+                        key={sexe}
+                        style={[
+                          styles.boutonChoixCompact,
+                          donneesPersonnelles.sexe === sexe && styles.boutonChoixActif,
+                        ]}
+                        onPress={() => mettreAJourDonneesPersonnelles("sexe", sexe)}
+                      >
+                        <Text
+                          style={[
+                            styles.texteChoixCompact,
+                            donneesPersonnelles.sexe === sexe && styles.texteChoixActif,
+                          ]}
+                        >
+                          {sexe === "homme" ? "Homme" : "Femme"}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.groupeChampVertical}>
+                  <Text style={styles.libelleChamp}>Niveau d’exercice</Text>
+                  <View style={styles.groupeBoutonsWrap}>
+                    {(Object.keys(ETIQUETTES_ACTIVITE) as NiveauActivite[]).map((niveau) => (
+                      <Pressable
+                        key={niveau}
+                        style={[
+                          styles.boutonChoixWrap,
+                          donneesPersonnelles.niveauActivite === niveau && styles.boutonChoixActif,
+                        ]}
+                        onPress={() => mettreAJourDonneesPersonnelles("niveauActivite", niveau)}
+                      >
+                        <Text
+                          style={[
+                            styles.texteChoix,
+                            donneesPersonnelles.niveauActivite === niveau && styles.texteChoixActif,
+                          ]}
+                        >
+                          {ETIQUETTES_ACTIVITE[niveau]}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.rangeeResultatsBase}>
+              <View style={styles.carteMiniResultat}>
+                <Text style={styles.titreMiniResultat}>BMR</Text>
+                <Text style={styles.valeurMiniResultat}>{arrondir(bmr)} kcal</Text>
+                <Text style={styles.descriptionMiniResultat}>Métabolisme de base</Text>
+              </View>
+
+              <View style={styles.carteMiniResultat}>
+                <Text style={styles.titreMiniResultat}>TDEE</Text>
+                <Text style={styles.valeurMiniResultat}>{arrondir(tdee)} kcal</Text>
+                <Text style={styles.descriptionMiniResultat}>Maintien estimé</Text>
+              </View>
+            </View>
+
+            <View style={styles.carteSection}>
+              <Text style={styles.titreSection}>Cibles recommandées</Text>
+              <Text style={styles.sousTexteSection}>
+                Estimation basée sur la formule standard du TDEE. Les chiffres sont des repères.
+              </Text>
+
+              {strategiesCalories.length === 0 ? (
+                <Text style={styles.texteVide}>
+                  Entre tes données personnelles pour obtenir tes recommandations.
+                </Text>
+              ) : (
+                strategiesCalories.map((strategie) => {
+                  const typeObjectif: TypeObjectifPoids =
+                    strategie.titre.includes("Perte")
+                      ? "perdre"
+                      : strategie.titre.includes("Maintien")
+                      ? "maintenir"
+                      : "gagner";
+
+                  return (
+                    <View key={strategie.titre} style={styles.carteStrategie}>
+                      <View style={styles.enteteStrategie}>
+                        <View>
+                          <Text style={styles.titreStrategie}>{strategie.titre}</Text>
+                          <Text style={styles.descriptionStrategie}>{strategie.description}</Text>
+                        </View>
+                        <Pressable
+                          style={styles.boutonAppliquer}
+                          onPress={() =>
+                            appliquerStrategieAuxObjectifs(strategie.calories, typeObjectif)
+                          }
+                        >
+                          <Text style={styles.texteBoutonAppliquer}>Utiliser</Text>
+                        </Pressable>
+                      </View>
+
+                      <Text style={styles.valeurStrategie}>{strategie.calories} kcal / jour</Text>
+                      <Text style={styles.variationStrategie}>
+                        {strategie.variationKgParSemaine === 0
+                          ? "Environ 0 kg / semaine"
+                          : `${strategie.variationKgParSemaine > 0 ? "+" : ""}${arrondir(
+                              strategie.variationKgParSemaine,
+                              2
+                            )} kg / semaine`}
+                      </Text>
+                    </View>
+                  );
+                })
+              )}
+            </View>
+          </>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  ecran: {
+    flex: 1,
+    backgroundColor: "#e8c0d7",
+  },
+  conteneur: {
+    padding: 16,
+    paddingBottom: 36,
+    gap: 16,
+  },
+  titre: {
+    fontSize: 30,
+    fontWeight: "800",
+    textAlign: "center",
+    marginTop: 10,
+    color: "#111",
+  },
+
+  barreOngletsHaut: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  boutonOngletHaut: {
+    flex: 1,
+    backgroundColor: "#f4f4f4",
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#dcdcdc",
+  },
+  boutonOngletHautActif: {
+    backgroundColor: "#efb6d4",
+    borderColor: "#efb6d4",
+  },
+  texteOngletHaut: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#333",
+  },
+  texteOngletHautActif: {
+    color: "white",
+  },
+
+  carteResumeCalories: {
+    backgroundColor: "#050505",
+    borderRadius: 28,
+    padding: 20,
+    alignItems: "center",
+  },
+  sousTitreResume: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  libelleResume: {
+    color: "#d8d8d8",
+    fontSize: 17,
+    marginTop: 2,
+  },
+  grosNombreBleu: {
+    color: "#ff6bdf",
+    fontSize: 56,
+    fontWeight: "900",
+    lineHeight: 62,
+    marginTop: 6,
+  },
+  objectifResume: {
+    color: "#d8d8d8",
+    fontSize: 18,
+    fontWeight: "700",
+    marginTop: 2,
+  },
+  rangeePetitsCercles: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 18,
+  },
+  petitIndicateur: {
+    flex: 1,
+    alignItems: "center",
+  },
+  texteValeurPetit: {
+    color: "white",
+    fontSize: 13,
+    marginTop: 6,
+    fontWeight: "700",
+  },
+
+  cartePrincipaleProgression: {
+    backgroundColor: "#111",
+    borderRadius: 26,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  texteStatutCalories: {
+    color: "white",
+    fontSize: 15,
+    textAlign: "center",
+    marginTop: 12,
+    lineHeight: 22,
+  },
+
+  conteneurCercle: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  contenuCercle: {
+    position: "absolute",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  pourcentageCercle: {
+    color: "white",
+    fontSize: 26,
+    fontWeight: "900",
+  },
+  valeurCercle: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: "700",
+    marginTop: 2,
+  },
+  titreCercle: {
+    color: "#d6d6d6",
+    fontSize: 13,
+    marginTop: 4,
+    textAlign: "center",
+  },
+
+  carteSection: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 16,
+    gap: 12,
+  },
+  titreSection: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#111",
+  },
+  sousTexteSection: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 20,
+  },
+
+  rangeeObjectifsType: {
+    flexDirection: "row",
+    gap: 10,
+    flexWrap: "wrap",
+  },
+  boutonChoix: {
+    backgroundColor: "#f4f4f4",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+  },
+  boutonChoixWrap: {
+    backgroundColor: "#f4f4f4",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  boutonChoixCompact: {
+    backgroundColor: "#f4f4f4",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    flex: 1,
+    alignItems: "center",
+  },
+  boutonChoixActif: {
+    backgroundColor: "#efb6d4",
+  },
+  texteChoix: {
+    color: "#333",
+    fontWeight: "700",
+  },
+  texteChoixCompact: {
+    color: "#333",
+    fontWeight: "700",
+    fontSize: 13,
+  },
+  texteChoixActif: {
+    color: "white",
+  },
+
+  listeChampsVerticaux: {
+    gap: 12,
+  },
+  groupeChampVertical: {
+    gap: 6,
+  },
+  libelleChamp: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#333",
+  },
+
+  rangeeTroisChampsWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  rangeeTroisChamps: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  rangeeDeuxChamps: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "stretch",
+  },
+  champ: {
+    backgroundColor: "#fafafa",
+    borderWidth: 1,
+    borderColor: "#e6e6e6",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: "#222",
+    minWidth: 130,
+    flexGrow: 1,
+  },
+  champPetit: {
+    flex: 1,
+    minWidth: 0,
+  },
+  champDemi: {
+    flex: 1,
+    minWidth: 0,
+  },
+  champGrand: {
+    minHeight: 90,
+    textAlignVertical: "top",
+  },
+
+  enteteRepas: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  boutonAjouter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#222",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  texteBoutonAjouter: {
+    color: "white",
+    fontWeight: "800",
+    fontSize: 14,
+  },
+
+  carteEntreeRepas: {
+    backgroundColor: "#fafafa",
+    borderWidth: 1,
+    borderColor: "#ececec",
+    borderRadius: 16,
+    padding: 14,
+    gap: 10,
+  },
+  enteteCarteRepas: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  titreCarteRepas: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#111",
+  },
+  boutonSupprimer: {
+    backgroundColor: "#fff3f3",
+    borderRadius: 10,
+    padding: 6,
+  },
+  texteVide: {
+    color: "#666",
+    fontSize: 15,
+    fontStyle: "italic",
+  },
+
+  groupeChoixVerticalCompact: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  rangeeChoixCompacte: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  groupeBoutonsWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  libellePetit: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#444",
+    marginBottom: 6,
+  },
+
+  rangeeResultatsBase: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  carteMiniResultat: {
+    flex: 1,
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    padding: 16,
+  },
+  titreMiniResultat: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#111",
+  },
+  valeurMiniResultat: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#111",
+    marginTop: 8,
+  },
+  descriptionMiniResultat: {
+    fontSize: 13,
+    color: "#666",
+    marginTop: 4,
+  },
+
+  carteStrategie: {
+    backgroundColor: "#fafafa",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#ececec",
+    padding: 14,
+    gap: 8,
+  },
+  enteteStrategie: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  titreStrategie: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#111",
+  },
+  descriptionStrategie: {
+    fontSize: 13,
+    color: "#666",
+    marginTop: 4,
+    maxWidth: 220,
+  },
+  valeurStrategie: {
+    fontSize: 21,
+    fontWeight: "900",
+    color: "#111",
+  },
+  variationStrategie: {
+    fontSize: 14,
+    color: "#444",
+  },
+  boutonAppliquer: {
+    backgroundColor: "#efb6d4",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  texteBoutonAppliquer: {
+    color: "white",
+    fontWeight: "800",
+  },
+});

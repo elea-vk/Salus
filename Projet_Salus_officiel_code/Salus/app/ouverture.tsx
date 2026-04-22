@@ -30,7 +30,7 @@ export default function Ouverture() {
       router.replace("/homePage")
     } 
     else {
-      router.replace("/pageInscription")
+      router.replace("/homePage")
     }
   };
 
