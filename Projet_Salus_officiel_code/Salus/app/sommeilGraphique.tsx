@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
-import { dataBaseSommeil, recupererToutesNuits } from "@/data/dataUtilisateur";
+import {initDatabase, recupererToutesNuits } from "@/data/dataAPP";
 import Couleurs from "../constantes/couleurs";
 
 const GraphiqueSommeil = () => {
@@ -9,7 +9,7 @@ const GraphiqueSommeil = () => {
 
   useEffect(() => {
     async function init() {
-      const db = await dataBaseSommeil();
+      const db = await initDatabase();
       const toutesNuits = await recupererToutesNuits(db);
 
       const transfData = toutesNuits

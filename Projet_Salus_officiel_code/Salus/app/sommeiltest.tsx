@@ -9,10 +9,10 @@ import { router } from "expo-router"; // idk
 
 import {
   ajouterNuit,
-  dataBaseSommeil,
+  initDatabase,
   recupererToutesNuits,
   supprimerToutesNuits,
-} from "@/data/dataUtilisateur";
+} from "@/data/dataAPP";
 
 import { Sommeil } from "@/src/sommeil";
 import Couleurs from "../constantes/couleurs";
@@ -46,7 +46,7 @@ export default function SommeilPage() {
 
   useEffect(() => {
   async function init() {
-    const database = await dataBaseSommeil();
+    const database = await initDatabase();
     setDb(database);
 
     // 👇 LOAD DATA IMMEDIATELY
