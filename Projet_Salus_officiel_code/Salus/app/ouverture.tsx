@@ -1,27 +1,65 @@
-import React from "react";
-import { View, Pressable, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import Couleurs from "../constantes/couleurs";
+import React, { useEffect } from "react";
+import { ajouterUtilisateur, getUtilisateur, initDatabase, supprimerUtilisateur } from "@/data/dataAPP";
+import { Pressable } from "react-native";
 
-export default function Ouverture(){
-   return (<View style={styles.container}>
-        <Text style={styles.titre}>
-            SALUS
+
+
+export default function Ouverture() {
+
+  const [db, setDb] = React.useState<any>(null)
+  useEffect(() => {
+    const init = async () => {
+      const database = await initDatabase();
+      setDb(database);
+    };
+    init();
+  }, []);
+
+
+  const skipInscription = false
+  
+
+
+  const gererSuite = async () => {
+    if (!db) return;
+    const utilisateur = await getUtilisateur(db)
+    if (utilisateur?.id || skipInscription) {
+      router.replace("/homePage")
+    } 
+    else {
+      router.replace("/pageInscription")
+    }
+  };
+
+
+  const devUtil = async () => {
+    if (!db) return
+    let utilisateur = await getUtilisateur(db)
+    if (!utilisateur) {
+      await ajouterUtilisateur(db, "Dev", "2000-01-01", "Femme")
+      utilisateur = await getUtilisateur(db)
+    }
+    //console.log("DEV USER:", utilisateur)
+    router.replace("/homePage")
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titre}>SALUS</Text>
+      <Pressable style={styles.boutonOuverture} onPress={()=>gererSuite ()}>
+        <Text style={styles.texteBouton}>
+          Commencer!
         </Text>
-        <Pressable 
-        style={styles.boutonOuverture}
-        onPress={()=>router.push("/homePage")}
-        >
-            <Text style={styles.texteBouton}>
-                Commencer!
-            </Text>
-
-        </Pressable>
-
+      </Pressable>
+      <Pressable style = {styles.boutonOuverture} onPress={()=>devUtil()}>
+        <Text>Se connecter comme un dev</Text>
+      </Pressable>
     </View>
-   );
+  );
 }
-
 
 
 
@@ -53,6 +91,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 2,
+    paddingVertical : 15
   },
   texteBouton:{
     textAlign:"center",

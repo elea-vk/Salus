@@ -2,7 +2,7 @@ import { View, Text, StyleSheet,Pressable, Modal, TextInput, ScrollView ,Dimensi
 import {useEffect, useState,useRef } from "react";
 
 import Couleurs from "@/constantes/couleurs";
-import { ajouterActivite, databaseActivite, recupererToutesActivites } from "@/data/dataUtilisateur";
+import { ajouterActivite, initDatabase, recupererToutesActivites } from "@/data/dataAPP";
 import {DateTimeSpinner} from "react-native-date-time-spinner";
 
 import { LinearGradient } from "expo-linear-gradient";
@@ -31,7 +31,7 @@ export default function Activite() {
 
   useEffect (()=>{
       async function init() {
-        const database = await databaseActivite()
+        const database = await initDatabase()
         setDb (database)
       }
       init()
