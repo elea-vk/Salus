@@ -47,7 +47,7 @@ export default function Index() {
         <View style={styles.row}>
           <Pressable
             style={styles.pageButton}
-            onPress={() => router.push("/sommeilPage")}
+            onPress={() => router.push("/sommeiltest")}
           >
             <Ionicons name="moon-outline" size={41} color={Couleurs.secondary} />
           </Pressable>

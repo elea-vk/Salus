@@ -4,9 +4,9 @@ import { ajouterNuit, dataBaseSommeil, recupererToutesNuits, supprimerToutesNuit
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { StyleSheet } from "react-native";
 import { Sommeil } from "@/src/sommeil";
+import Couleurs from "../constantes/couleurs";
 //timePicker : https://github.com/react-native-datetimepicker/datetimepicker?tab=readme-ov-file#getting-started
 //reco Expo pr le timePicker : https://docs.expo.dev/versions/latest/sdk/date-time-picker/
-
 
 
 export default function SommeilPage() {
@@ -56,7 +56,6 @@ export default function SommeilPage() {
     })
   }
   
-
   //création de la méthode d'ajout
   const ajouter = async () => {
     if (!db) return
@@ -65,7 +64,6 @@ export default function SommeilPage() {
     const dateUtil = date.toISOString().split ("T")[0] //on passe la date en string et on récupère seulement la journée pas les heures
     const heures = nuit.calculerHeuresSommeil()
     
-
     await ajouterNuit (db, dateUtil, heures )
     await recupererToutesNuits (db)
   } 
@@ -89,34 +87,34 @@ export default function SommeilPage() {
 
   return (
     <View style={styles.container}>
-      <Text style = {styles.titre}>🌙​ Suivi de mon sommeil 🌙​</Text>
+      <Text style = {styles.titre}>Sommeil​</Text>
 
 
       <View>
         <TouchableOpacity style = {styles.bouton} onPress={ouvrirChoixDate}>
-          <Text style = {styles.titreSection}> Choisir une date </Text>
+          <Text style = {styles.titreSection}> Date : </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style = {styles.bouton} onPress={ouvrirChoixHeureCoucher}>
-          <Text style = {styles.titreSection}> 🌇 Choisir l'heure de mon coucher 🌇</Text>
+          <Text style = {styles.titreSection}> Heure du coucher :</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style = {styles.bouton} onPress={ouvrirChoixHeureLever}>
-          <Text style = {styles.titreSection}> 🌅 Choisir l'heure de mon lever 🌅 </Text>
+          <Text style = {styles.titreSection}> Heure du réveil : </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style = {styles.bouton} onPress={ajouter}>
-          <Text style = {styles.titreSection}> ​🌜​ Ajouter ma nuit 🌛</Text>
+          <Text style = {styles.titreSection}> ​Ajouter ma nuit</Text>
         </TouchableOpacity>
       </View>    
       <View>
-        <Text style = {styles.titre}> 🕑​ Mon historique</Text>
+        <Text style = {styles.titre}> Historique</Text>
         <TouchableOpacity style = {styles.bouton} onPress={afficher}>
           <Text style = {styles.titreSection}>Voir mes entrées</Text>
         </TouchableOpacity>
           {afficherDonnees && nuitListe.map((item, index) => (
           <Text key={index}>
-            {item.date} - {item.heuresSommeil}h
+            {item.date} - {item.heuresSommeil}
           </Text>
         ))} 
         <TouchableOpacity style = {styles.bouton}  onPress={supprimerToutes}>
@@ -130,11 +128,10 @@ export default function SommeilPage() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
   flex: 1,
-  backgroundColor:'#e8c0d7',
+  backgroundColor: Couleurs.background,
   gap:16,
   justifyContent: 'center',
   alignItems: 'center',
@@ -144,7 +141,7 @@ const styles = StyleSheet.create({
     fontWeight : 'bold',
     textAlign : 'center',
     marginBottom : 20,
-    color : '#791d31'
+    color : Couleurs.darkText
   },
   card: {
     backgroundColor: 'white',
@@ -157,7 +154,7 @@ const styles = StyleSheet.create({
     elevation: 4
   },
   bouton : {
-    backgroundColor: '#f3a6c6',
+    backgroundColor: Couleurs.background,
     padding: 6,
     borderRadius: 10,
     marginBottom: 8,
