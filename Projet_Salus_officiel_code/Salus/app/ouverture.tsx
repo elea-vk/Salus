@@ -19,7 +19,7 @@ export default function Ouverture() {
   }, []);
 
 
-  const skipInscription = true
+  const skipInscription = false
   
 
 
