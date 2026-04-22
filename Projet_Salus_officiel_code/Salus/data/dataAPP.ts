@@ -213,8 +213,8 @@ export async function modifierPrenom(db : any, id : number, prenom : string) {
 /*export async function age(db : any, id : number, age : number) {
     return db.runAsync ('UPDATE utilisateur SET age =? WHERE id =?', [age,id])
 }*/
-export async function getUtilisateur(db: any, id : number) {
-  return db.getFirstAsync('SELECT * FROM utilisateur LIMIT 1',[id]);
+export async function getUtilisateur(db: any) {
+  return db.getFirstAsync('SELECT * FROM utilisateur LIMIT 1');
 }
 
 export async function supprimerUtilisateur(db : any, id : number) {
