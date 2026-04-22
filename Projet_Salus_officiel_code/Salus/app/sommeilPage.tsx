@@ -1,10 +1,10 @@
 import {Text, TouchableOpacity, View } from "react-native";
 import { useEffect, useState } from "react";
-import { ajouterNuit, dataBaseSommeil, recupererToutesNuits, supprimerToutesNuits } from "@/data/dataUtilisateur";
+import { ajouterNuit, initDatabase, recupererToutesNuits, supprimerToutesNuits } from "@/data/dataAPP";
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { StyleSheet } from "react-native";
 import { Sommeil } from "@/src/sommeil";
-import Couleurs from "../constantes/couleurs";
+import { FlatList } from "react-native";
 //timePicker : https://github.com/react-native-datetimepicker/datetimepicker?tab=readme-ov-file#getting-started
 //reco Expo pr le timePicker : https://docs.expo.dev/versions/latest/sdk/date-time-picker/
 
@@ -22,7 +22,7 @@ export default function SommeilPage() {
   //ouverture de la base de donées
   useEffect (()=>{
     async function init() {
-      const database = await dataBaseSommeil()
+      const database = await initDatabase()
       setDb (database)
     }
     init()
@@ -112,11 +112,14 @@ export default function SommeilPage() {
         <TouchableOpacity style = {styles.bouton} onPress={afficher}>
           <Text style = {styles.titreSection}>Voir mes entrées</Text>
         </TouchableOpacity>
-          {afficherDonnees && nuitListe.map((item, index) => (
-          <Text key={index}>
-            {item.date} - {item.heuresSommeil}
-          </Text>
-        ))} 
+          {afficherDonnees &&  (
+            <FlatList
+            data={nuitListe}
+            keyExtractor={(item) => item.id?.toString() || item.date}
+            renderItem={({ item }) => (
+              <Text> {item.date} - {item.heuresSommeil}h</Text>
+            )}
+        />)} 
         <TouchableOpacity style = {styles.bouton}  onPress={supprimerToutes}>
           <Text style = {styles.titreSection}>Supprimer toutes mes entrées</Text>
         </TouchableOpacity>

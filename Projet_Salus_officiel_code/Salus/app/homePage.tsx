@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
-import { Redirect } from "expo-router";
+import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import Couleurs from "../constantes/couleurs";
@@ -37,9 +37,9 @@ export default function Index() {
 
           <Pressable
             style={styles.pageButton}
-            onPress={() => router.push("/alimentation")}
+            onPress={() => router.push("/activite")}
           >
-            <Ionicons name="restaurant-outline" size={41} color={Couleurs.secondary} />
+            <Ionicons name="calendar-outline" size={41} color={Couleurs.secondary} />
           </Pressable>
         </View>
 
@@ -47,7 +47,7 @@ export default function Index() {
         <View style={styles.row}>
           <Pressable
             style={styles.pageButton}
-            onPress={() => router.push("/sommeiltest")}
+            onPress={() => router.push("/sommeilPage")}
           >
             <Ionicons name="moon-outline" size={41} color={Couleurs.secondary} />
           </Pressable>
@@ -95,7 +95,9 @@ export default function Index() {
           <Ionicons name="settings-outline" size={32} color={Couleurs.primary} />
         </Pressable>
 
-        <Pressable style={styles.bottomButton}>
+        <Pressable style={styles.bottomButton}
+          onPress={()=>router.push("/utilisateur")}
+        >
           <Ionicons name="person-outline" size={32} color={Couleurs.primary} />
         </Pressable>
 
