@@ -15,17 +15,27 @@ import Svg, { Circle } from "react-native-svg";
 // Types
 // -------------------------
 
+// Représente les deux sections principales de la page alimentation.
 type OngletAlimentation = "journal" | "calculateur";
+
+// Représente les catégories de repas où l'utilisateur peut ajouter une entrée.
 type TypeRepas = "dejeuner" | "diner" | "souper" | "collation";
+
+// Représente le sexe choisi dans le calculateur de calories.
 type Sexe = "homme" | "femme";
+
+// Représente les niveaux d'activité utilisés pour calculer le TDEE.
 type NiveauActivite =
   | "sedentaire"
   | "leger"
   | "modere"
   | "eleve"
   | "tres_eleve";
+
+// Représente l'objectif principal de l'utilisateur.
 type TypeObjectifPoids = "perdre" | "maintenir" | "gagner";
 
+// Représente une entrée alimentaire ajoutée dans le journal.
 type EntreeRepas = {
   id: string;
   nom: string;
@@ -37,6 +47,7 @@ type EntreeRepas = {
   typeRepas: TypeRepas;
 };
 
+// Représente les objectifs nutritionnels de la journée.
 type ObjectifsJournalier = {
   calories: string;
   proteines: string;
@@ -45,6 +56,7 @@ type ObjectifsJournalier = {
   objectifPoids: TypeObjectifPoids;
 };
 
+// Représente les données personnelles utilisées pour calculer les calories.
 type DonneesPersonnelles = {
   poids: string;
   age: string;
@@ -53,6 +65,7 @@ type DonneesPersonnelles = {
   niveauActivite: NiveauActivite;
 };
 
+// Représente une stratégie calorique calculée selon le TDEE.
 type StrategieCalories = {
   titre: string;
   calories: number;
@@ -64,12 +77,15 @@ type StrategieCalories = {
 // Constantes
 // -------------------------
 
+// Clés utilisées pour sauvegarder les données localement avec AsyncStorage.
 const CLE_REPAS = "@salus_alimentation_repas";
 const CLE_OBJECTIFS = "@salus_alimentation_objectifs";
 const CLE_DONNEES_PERSONNELLES = "@salus_alimentation_donnees_personnelles";
 
+// Liste des catégories de repas affichées dans le journal.
 const TYPES_REPAS: TypeRepas[] = ["dejeuner", "diner", "souper", "collation"];
 
+// Noms affichés à l'écran pour chaque type de repas.
 const ETIQUETTES_REPAS: Record<TypeRepas, string> = {
   dejeuner: "Déjeuner",
   diner: "Dîner",
@@ -77,6 +93,7 @@ const ETIQUETTES_REPAS: Record<TypeRepas, string> = {
   collation: "Collation",
 };
 
+// Noms affichés à l'écran pour chaque niveau d'activité.
 const ETIQUETTES_ACTIVITE: Record<NiveauActivite, string> = {
   sedentaire: "Sédentaire",
   leger: "Léger",
@@ -85,6 +102,7 @@ const ETIQUETTES_ACTIVITE: Record<NiveauActivite, string> = {
   tres_eleve: "Très élevé",
 };
 
+// Multiplicateurs standards utilisés pour passer du BMR au TDEE.
 const MULTIPLICATEURS_ACTIVITE: Record<NiveauActivite, number> = {
   sedentaire: 1.2,
   leger: 1.375,
@@ -97,10 +115,12 @@ const MULTIPLICATEURS_ACTIVITE: Record<NiveauActivite, number> = {
 // Fonctions utilitaires
 // -------------------------
 
+// Crée un identifiant unique pour chaque repas ajouté.
 function creerIdUnique() {
   return `${Date.now()}-${Math.random()}`;
 }
 
+// Crée une entrée vide dans une section de repas précise.
 function creerEntreeVide(typeRepas: TypeRepas): EntreeRepas {
   return {
     id: creerIdUnique(),
@@ -114,11 +134,14 @@ function creerEntreeVide(typeRepas: TypeRepas): EntreeRepas {
   };
 }
 
+// Convertit une valeur texte en nombre.
+// Permet aussi d'accepter les virgules comme décimales.
 function convertirEnNombre(valeur: string): number {
   const nombre = Number(valeur.replace(",", "."));
   return Number.isFinite(nombre) ? nombre : 0;
 }
 
+// Arrondit une valeur numérique selon le nombre de décimales voulu.
 function arrondir(valeur: number, decimales = 0) {
   const facteur = Math.pow(10, decimales);
   return Math.round(valeur * facteur) / facteur;
@@ -130,24 +153,28 @@ function calculerBMR(donnees: DonneesPersonnelles): number {
   const taille = convertirEnNombre(donnees.taille);
   const age = convertirEnNombre(donnees.age);
 
+  // Si une donnée obligatoire manque, on retourne 0.
   if (!poids || !taille || !age) return 0;
 
+  // Formule pour homme.
   if (donnees.sexe === "homme") {
     return 10 * poids + 6.25 * taille - 5 * age + 5;
   }
 
+  // Formule pour femme.
   return 10 * poids + 6.25 * taille - 5 * age - 161;
 }
 
-// Calcule le TDEE standard selon le niveau d'activité.
+// Calcule le TDEE en multipliant le BMR par le niveau d'activité.
 function calculerTDEE(donnees: DonneesPersonnelles): number {
   const bmr = calculerBMR(donnees);
   const multiplicateur = MULTIPLICATEURS_ACTIVITE[donnees.niveauActivite] ?? 1.2;
   return bmr * multiplicateur;
 }
 
-// Génère différentes stratégies caloriques autour du maintien.
+// Génère les recommandations caloriques autour du maintien.
 function genererStrategiesCalories(tdee: number): StrategieCalories[] {
+  // Si le TDEE n'est pas encore calculable, on ne retourne aucune stratégie.
   if (!tdee) return [];
 
   return [
@@ -184,7 +211,7 @@ function genererStrategiesCalories(tdee: number): StrategieCalories[] {
   ];
 }
 
-// Détermine le message d'état selon le total actuel, l'objectif et le type d'objectif.
+// Détermine le message affiché selon les calories consommées et l'objectif choisi.
 function obtenirStatutCalories(
   totalCalories: number,
   objectifCalories: number,
@@ -194,6 +221,7 @@ function obtenirStatutCalories(
     return "Ajoute un objectif calorique pour suivre ta progression.";
   }
 
+  // Logique pour un objectif de maintien.
   if (objectifPoids === "maintenir") {
     const difference = totalCalories - objectifCalories;
     if (Math.abs(difference) <= 50) return "Tu es très proche de ton objectif de maintien.";
@@ -201,12 +229,14 @@ function obtenirStatutCalories(
     return "Tu as dépassé ton objectif de maintien.";
   }
 
+  // Logique pour un objectif de perte de poids.
   if (objectifPoids === "perdre") {
     if (totalCalories < objectifCalories) return "Tu es encore sous ta limite calorique de perte de poids.";
     if (totalCalories === objectifCalories) return "Tu as atteint exactement ta cible de perte de poids.";
     return "Tu as dépassé la limite prévue pour la perte de poids.";
   }
 
+  // Logique pour un objectif de prise de poids.
   if (totalCalories < objectifCalories) return "Tu n’as pas encore atteint ton objectif de prise de poids.";
   if (totalCalories === objectifCalories) return "Tu as atteint exactement ton objectif de prise de poids.";
   return "Tu as dépassé ton objectif de prise de poids.";
@@ -226,6 +256,8 @@ type CercleProgressionProps = {
   couleur?: string;
 };
 
+// Composant réutilisable qui affiche un cercle de progression.
+// Il sert pour les calories, protéines, glucides et lipides.
 function CercleProgression({
   valeurActuelle,
   valeurCible,
@@ -235,15 +267,25 @@ function CercleProgression({
   epaisseur = 18,
   couleur = "#ff6bdf",
 }: CercleProgressionProps) {
+  // Rayon du cercle selon la taille et l'épaisseur.
   const rayon = (taille - epaisseur) / 2;
+
+  // Circonférence utilisée pour contrôler le remplissage du cercle.
   const circonference = 2 * Math.PI * rayon;
+
+  // Ratio de progression limité à 100% pour l'affichage du cercle.
   const ratio = valeurCible > 0 ? Math.min(valeurActuelle / valeurCible, 1) : 0;
+
+  // Permet de changer la couleur si l'utilisateur dépasse l'objectif.
   const depassement = valeurCible > 0 && valeurActuelle > valeurCible;
+
+  // Décalage utilisé par SVG pour afficher seulement une partie du cercle.
   const offset = circonference * (1 - ratio);
 
   return (
     <View style={[styles.conteneurCercle, { width: taille, height: taille }]}>
       <Svg width={taille} height={taille}>
+        {/* Cercle de fond */}
         <Circle
           cx={taille / 2}
           cy={taille / 2}
@@ -252,6 +294,8 @@ function CercleProgression({
           strokeWidth={epaisseur}
           fill="none"
         />
+
+        {/* Cercle de progression */}
         <Circle
           cx={taille / 2}
           cy={taille / 2}
@@ -267,6 +311,7 @@ function CercleProgression({
         />
       </Svg>
 
+      {/* Texte affiché au centre du cercle */}
       <View style={styles.contenuCercle}>
         <Text style={styles.pourcentageCercle}>
           {valeurCible > 0 ? `${Math.round((valeurActuelle / valeurCible) * 100)}%` : "0%"}
@@ -286,9 +331,13 @@ function CercleProgression({
 // -------------------------
 
 export default function Alimentation() {
+  // Onglet actuellement sélectionné : journal ou calculateur.
   const [ongletActif, setOngletActif] = useState<OngletAlimentation>("journal");
 
+  // Liste de tous les repas ajoutés dans la journée.
   const [entreesRepas, setEntreesRepas] = useState<EntreeRepas[]>([]);
+
+  // Objectifs nutritionnels journaliers.
   const [objectifs, setObjectifs] = useState<ObjectifsJournalier>({
     calories: "2000",
     proteines: "150",
@@ -297,6 +346,7 @@ export default function Alimentation() {
     objectifPoids: "maintenir",
   });
 
+  // Données personnelles utilisées pour calculer BMR et TDEE.
   const [donneesPersonnelles, setDonneesPersonnelles] = useState<DonneesPersonnelles>({
     poids: "",
     age: "",
@@ -305,7 +355,7 @@ export default function Alimentation() {
     niveauActivite: "modere",
   });
 
-  // Charge les données sauvegardées localement au démarrage.
+  // Charge les repas, objectifs et données personnelles déjà sauvegardés sur l'appareil.
   useEffect(() => {
     const chargerDonnees = async () => {
       try {
@@ -319,9 +369,11 @@ export default function Alimentation() {
         if (repasSauvegardes) {
           setEntreesRepas(JSON.parse(repasSauvegardes));
         }
+
         if (objectifsSauvegardes) {
           setObjectifs(JSON.parse(objectifsSauvegardes));
         }
+
         if (donneesSauvegardees) {
           setDonneesPersonnelles(JSON.parse(donneesSauvegardees));
         }
@@ -333,21 +385,21 @@ export default function Alimentation() {
     chargerDonnees();
   }, []);
 
-  // Sauvegarde automatiquement les entrées de repas.
+  // Sauvegarde automatiquement les repas chaque fois que la liste change.
   useEffect(() => {
     AsyncStorage.setItem(CLE_REPAS, JSON.stringify(entreesRepas)).catch((erreur) => {
       console.log("Erreur sauvegarde repas :", erreur);
     });
   }, [entreesRepas]);
 
-  // Sauvegarde automatiquement les objectifs.
+  // Sauvegarde automatiquement les objectifs chaque fois qu'ils changent.
   useEffect(() => {
     AsyncStorage.setItem(CLE_OBJECTIFS, JSON.stringify(objectifs)).catch((erreur) => {
       console.log("Erreur sauvegarde objectifs :", erreur);
     });
   }, [objectifs]);
 
-  // Sauvegarde automatiquement les données personnelles.
+  // Sauvegarde automatiquement les données personnelles chaque fois qu'elles changent.
   useEffect(() => {
     AsyncStorage.setItem(
       CLE_DONNEES_PERSONNELLES,
@@ -357,7 +409,8 @@ export default function Alimentation() {
     });
   }, [donneesPersonnelles]);
 
-  // Calcule les totaux journaliers automatiquement après chaque entrée.
+  // Calcule les totaux de la journée à partir de toutes les entrées.
+  // useMemo évite de recalculer les totaux inutilement si les repas n'ont pas changé.
   const totaux = useMemo(() => {
     return entreesRepas.reduce(
       (accumulateur, entree) => {
@@ -371,26 +424,28 @@ export default function Alimentation() {
     );
   }, [entreesRepas]);
 
+  // Convertit les objectifs écrits en texte en nombres utilisables pour les calculs.
   const objectifCalories = convertirEnNombre(objectifs.calories);
   const objectifProteines = convertirEnNombre(objectifs.proteines);
   const objectifGlucides = convertirEnNombre(objectifs.glucides);
   const objectifLipides = convertirEnNombre(objectifs.lipides);
 
+  // Calcule le BMR, le TDEE et les stratégies recommandées.
   const bmr = useMemo(() => calculerBMR(donneesPersonnelles), [donneesPersonnelles]);
   const tdee = useMemo(() => calculerTDEE(donneesPersonnelles), [donneesPersonnelles]);
   const strategiesCalories = useMemo(() => genererStrategiesCalories(tdee), [tdee]);
 
-  // Ajoute une nouvelle entrée de repas dans la catégorie choisie.
+  // Ajoute une nouvelle entrée vide dans le type de repas choisi.
   const ajouterEntree = (typeRepas: TypeRepas) => {
     setEntreesRepas((precedent) => [...precedent, creerEntreeVide(typeRepas)]);
   };
 
-  // Supprime une entrée spécifique.
+  // Supprime une entrée précise selon son identifiant.
   const supprimerEntree = (id: string) => {
     setEntreesRepas((precedent) => precedent.filter((entree) => entree.id !== id));
   };
 
-  // Met à jour un champ d'une entrée de repas.
+  // Met à jour un champ précis d'une entrée de repas.
   const mettreAJourEntree = (
     id: string,
     champ: keyof Omit<EntreeRepas, "id">,
@@ -411,7 +466,7 @@ export default function Alimentation() {
     setObjectifs((precedent) => ({ ...precedent, [champ]: valeur }));
   };
 
-  // Met à jour les données personnelles pour le calculateur de calories.
+  // Met à jour une donnée personnelle utilisée dans le calculateur.
   const mettreAJourDonneesPersonnelles = (
     champ: keyof DonneesPersonnelles,
     valeur: string | Sexe | NiveauActivite
@@ -419,16 +474,20 @@ export default function Alimentation() {
     setDonneesPersonnelles((precedent) => ({ ...precedent, [champ]: valeur }));
   };
 
-  // Permet d'appliquer directement une stratégie calculée dans les objectifs journaliers.
+  // Quand l'utilisateur clique sur "Utiliser", cette fonction applique
+  // la recommandation calorique choisie dans les objectifs journaliers.
   const appliquerStrategieAuxObjectifs = (calories: number, type: TypeObjectifPoids) => {
     setObjectifs((precedent) => ({
       ...precedent,
       calories: String(arrondir(calories)),
       objectifPoids: type,
     }));
+
+    // Retourne automatiquement vers le journal après l'application.
     setOngletActif("journal");
   };
 
+  // Message affiché sous le cercle de calories.
   const statutCalories = obtenirStatutCalories(
     totaux.calories,
     objectifCalories,
@@ -440,6 +499,7 @@ export default function Alimentation() {
       <ScrollView contentContainerStyle={styles.conteneur}>
         <Text style={styles.titre}>Alimentation</Text>
 
+        {/* Barre d'onglets pour passer entre Journal et Calculateur */}
         <View style={styles.barreOngletsHaut}>
           <Pressable
             style={[styles.boutonOngletHaut, ongletActif === "journal" && styles.boutonOngletHautActif]}
@@ -469,12 +529,14 @@ export default function Alimentation() {
 
         {ongletActif === "journal" ? (
           <>
+            {/* Résumé principal des calories et macros de la journée */}
             <View style={styles.carteResumeCalories}>
               <Text style={styles.sousTitreResume}>Aujourd’hui</Text>
               <Text style={styles.libelleResume}>Calories</Text>
               <Text style={styles.grosNombreBleu}>{arrondir(totaux.calories)}</Text>
               <Text style={styles.objectifResume}>sur {objectifCalories || 0}</Text>
 
+              {/* Petits cercles pour les macros */}
               <View style={styles.rangeePetitsCercles}>
                 <View style={styles.petitIndicateur}>
                   <CercleProgression
@@ -514,6 +576,7 @@ export default function Alimentation() {
               </View>
             </View>
 
+            {/* Grand cercle de progression pour l'objectif calorique */}
             <View style={styles.cartePrincipaleProgression}>
               <CercleProgression
                 valeurActuelle={totaux.calories}
@@ -527,9 +590,11 @@ export default function Alimentation() {
               <Text style={styles.texteStatutCalories}>{statutCalories}</Text>
             </View>
 
+            {/* Section permettant de modifier les objectifs journaliers */}
             <View style={styles.carteSection}>
               <Text style={styles.titreSection}>Objectifs journaliers</Text>
 
+              {/* Choix du type d'objectif */}
               <View style={styles.rangeeObjectifsType}>
                 {(["perdre", "maintenir", "gagner"] as TypeObjectifPoids[]).map((type) => (
                   <Pressable
@@ -552,6 +617,7 @@ export default function Alimentation() {
                 ))}
               </View>
 
+              {/* Champs d'objectifs nutritionnels */}
               <View style={styles.listeChampsVerticaux}>
                 <View style={styles.groupeChampVertical}>
                   <Text style={styles.libelleChamp}>Calories</Text>
@@ -603,13 +669,17 @@ export default function Alimentation() {
               </View>
             </View>
 
+            {/* Affiche les quatre sections de repas automatiquement */}
             {TYPES_REPAS.map((typeRepas) => {
+              // Filtre seulement les repas appartenant à la section actuelle.
               const entreesDuType = entreesRepas.filter((entree) => entree.typeRepas === typeRepas);
 
               return (
                 <View key={typeRepas} style={styles.carteSection}>
                   <View style={styles.enteteRepas}>
                     <Text style={styles.titreSection}>{ETIQUETTES_REPAS[typeRepas]}</Text>
+
+                    {/* Ajoute une entrée vide dans cette section */}
                     <Pressable style={styles.boutonAjouter} onPress={() => ajouterEntree(typeRepas)}>
                       <Ionicons name="add" size={18} color="white" />
                       <Text style={styles.texteBoutonAjouter}>Ajouter</Text>
@@ -623,6 +693,8 @@ export default function Alimentation() {
                       <View key={entree.id} style={styles.carteEntreeRepas}>
                         <View style={styles.enteteCarteRepas}>
                           <Text style={styles.titreCarteRepas}>Repas</Text>
+
+                          {/* Supprime cette entrée de repas */}
                           <Pressable
                             onPress={() => supprimerEntree(entree.id)}
                             style={styles.boutonSupprimer}
@@ -631,6 +703,7 @@ export default function Alimentation() {
                           </Pressable>
                         </View>
 
+                        {/* Nom du repas ou aliment */}
                         <TextInput
                           style={styles.champ}
                           value={entree.nom}
@@ -639,6 +712,7 @@ export default function Alimentation() {
                           placeholderTextColor="#8c8c8c"
                         />
 
+                        {/* Calories du repas */}
                         <TextInput
                           style={styles.champ}
                           value={entree.calories}
@@ -648,6 +722,7 @@ export default function Alimentation() {
                           placeholderTextColor="#8c8c8c"
                         />
 
+                        {/* Macros du repas */}
                         <View style={styles.rangeeTroisChamps}>
                           <TextInput
                             style={[styles.champ, styles.champPetit]}
@@ -675,6 +750,7 @@ export default function Alimentation() {
                           />
                         </View>
 
+                        {/* Section libre pour écrire d'autres informations */}
                         <TextInput
                           style={[styles.champ, styles.champGrand]}
                           value={entree.autreInfo}
@@ -692,6 +768,7 @@ export default function Alimentation() {
           </>
         ) : (
           <>
+            {/* Section du calculateur : informations personnelles */}
             <View style={styles.carteSection}>
               <Text style={styles.titreSection}>Données personnelles</Text>
 
@@ -732,6 +809,7 @@ export default function Alimentation() {
                   />
                 </View>
 
+                {/* Choix du sexe, utilisé dans la formule BMR */}
                 <View style={styles.groupeChampVertical}>
                   <Text style={styles.libelleChamp}>Sexe</Text>
                   <View style={styles.rangeeChoixCompacte}>
@@ -757,6 +835,7 @@ export default function Alimentation() {
                   </View>
                 </View>
 
+                {/* Choix du niveau d'activité, utilisé pour calculer le TDEE */}
                 <View style={styles.groupeChampVertical}>
                   <Text style={styles.libelleChamp}>Niveau d’exercice</Text>
                   <View style={styles.groupeBoutonsWrap}>
@@ -784,6 +863,7 @@ export default function Alimentation() {
               </View>
             </View>
 
+            {/* Résultats de base : BMR et TDEE */}
             <View style={styles.rangeeResultatsBase}>
               <View style={styles.carteMiniResultat}>
                 <Text style={styles.titreMiniResultat}>BMR</Text>
@@ -798,6 +878,7 @@ export default function Alimentation() {
               </View>
             </View>
 
+            {/* Liste des recommandations caloriques calculées avec le TDEE */}
             <View style={styles.carteSection}>
               <Text style={styles.titreSection}>Cibles recommandées</Text>
               <Text style={styles.sousTexteSection}>
@@ -810,6 +891,7 @@ export default function Alimentation() {
                 </Text>
               ) : (
                 strategiesCalories.map((strategie) => {
+                  // Détermine automatiquement le type d'objectif selon le nom de la stratégie.
                   const typeObjectif: TypeObjectifPoids =
                     strategie.titre.includes("Perte")
                       ? "perdre"
@@ -824,6 +906,8 @@ export default function Alimentation() {
                           <Text style={styles.titreStrategie}>{strategie.titre}</Text>
                           <Text style={styles.descriptionStrategie}>{strategie.description}</Text>
                         </View>
+
+                        {/* Applique cette cible calorique dans les objectifs journaliers */}
                         <Pressable
                           style={styles.boutonAppliquer}
                           onPress={() =>
@@ -854,6 +938,10 @@ export default function Alimentation() {
     </View>
   );
 }
+
+// -------------------------
+// Styles
+// -------------------------
 
 const styles = StyleSheet.create({
   ecran: {
