@@ -1,4 +1,4 @@
-import { Donnee } from "./donnees";
+import { Donnee } from "./donnee";
 import { SexeBiologique } from "./sexeBiologique";
 
 export class DonneeBiologique extends Donnee{

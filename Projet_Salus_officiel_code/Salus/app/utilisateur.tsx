@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState,useRef } from "react"
 import { View, Text, TextInput, StyleSheet, Pressable } from "react-native"
 import { DateTimeSpinner } from "react-native-date-time-spinner"
 import { LinearGradient } from "expo-linear-gradient"
 import {ajouterUtilisateur, initDatabase, modifierDateDeNaissance,getUtilisateur,modifierPrenom,getDernierSuivi,ajouterMesure,modifierSexe} from "@/data/dataAPP"
 import { Picker } from '@react-native-picker/picker'
-import { Utilisateur } from "@/src/utilisateur"
+import { SexeUtilisateur, Utilisateur } from "@/src/utilisateur"
+import { ScrollView } from "react-native"
+import { SexeBiologique } from "@/src/sexeBiologique"
 
 
 export default function PageUtilisateur() {
@@ -30,6 +32,10 @@ export default function PageUtilisateur() {
 
 
   const [montrerInfo, setMontrerInfo] = useState(false)
+  const [tempDate, setTempDate] = useState(datedeNaissance)
+  
+  
+  
 
 
   //////
@@ -38,8 +44,8 @@ export default function PageUtilisateur() {
       const database = await initDatabase()
       
 
-      const utilisateur = await getUtilisateur(database)
-      const suivi = await getDernierSuivi(database, 1)
+      const utilisateur = await getUtilisateur(database,1)
+      const suivi = await getDernierSuivi(database,1)
       if (utilisateur) {
         const user = new Utilisateur(utilisateur.prenom,new Date(utilisateur.dateDeNaissance),utilisateur.sexe,utilisateur.id)
         setUtilisateurObj(user);
@@ -56,43 +62,43 @@ export default function PageUtilisateur() {
     }
   init();}, 
   []);
+
   
-  const sauvegarderUtilisateur = async () => {
-    if (!db) {return}
+const sauvegarderUtilisateur = async () => {
+  if (!db) return;
 
-    const dateUtil = datedeNaissance instanceof Date && !isNaN(datedeNaissance.getTime())? datedeNaissance.toISOString().split("T")[0]: new Date().toISOString().split("T")[0]
+  try {
+    const dateUtil =
+      datedeNaissance instanceof Date && !isNaN(datedeNaissance.getTime())
+        ? datedeNaissance.toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0];
 
-    // 1. profil
-    const existe = await getUtilisateur(db)
-    if (!existe) {
-      await ajouterUtilisateur(db, nom, dateUtil, sexe)
-    } 
-    else {
-      await modifierPrenom(db, 1, nom)
-      await modifierSexe(db, 1, sexe)
-      await modifierDateDeNaissance(db, 1, datedeNaissance.toISOString().split("T")[0])
-    }
-    
-    // 2. suivi 
-    const dernier = await getDernierSuivi(db, 1);
-    if (!dernier ||dernier.poids !== Number(poids) ||dernier.taille !== Number(taille)) {
-      await ajouterMesure(db, 1, dateUtil, Number(poids), Number(taille));
-    }
-    const suivi = await getDernierSuivi(db, 1)
-    if (suivi) {
-      setPoids(suivi.poids?.toString() || "")
-      setTaille(suivi.taille?.toString() || "")
-    }
-    console.log ("changement")
+    // ⚡ UPDATE DB (fire and wait)
+    await Promise.all([
+      modifierPrenom(db, 1, nom),
+      modifierSexe(db, 1, sexe),
+      modifierDateDeNaissance(db, 1, dateUtil),
+    ]);
+
+    // ⚡ DB est mise à jour, mais UI ne dépend PLUS de DB ici
+    console.log("SAVE OK");
+
+    // (optionnel debug)
+    console.log({
+      nom,
+      sexe,
+      dateUtil,
+    });
+  } catch (e) {
+    console.log("SAVE ERROR:", e);
   }
-
-
+};
 
 
   ////
     return (
-  <View style={styles.container}>
-
+      <View>
+  <ScrollView contentContainerStyle={styles.container}>
     <Text style={styles.title}>Profil utilisateur</Text>
 
     {/* PRÉNOM */}
@@ -125,32 +131,7 @@ export default function PageUtilisateur() {
         </Pressable>
       </View>
 
-      {montrerSpinner && (
-        <View style={styles.spinnerContainer}>
-          <DateTimeSpinner
-            mode="date"
-            dateTimeOrder={["date"]}
-            minDate={new Date("1920-01-01")}
-            maxDate={new Date()}
-           onDateChange={(value) => {
-            const newDate = value?.date ?? value ?? new Date()
-            setDateDeNaissance(newDate)
-          }}
-            LinearGradient={LinearGradient}
-            styles={styles.spinner}
-          />
-
-          <Pressable
-            onPress={() => {
-              setDateDeNaissance(datedeNaissance)
-              setMontrerSpinner(false)
-            }}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Valider</Text>
-          </Pressable>
-        </View>
-      )}
+      
 
       <Text style={styles.value}>
         {datedeNaissance.toLocaleDateString("fr-FR")}
@@ -230,25 +211,113 @@ export default function PageUtilisateur() {
         <Text style={styles.value}>{sexe || "Non renseigné"}</Text>
       )}
     </View>
+    
+    
+    <View style={styles.card}>
+      <View style={styles.rowHeader}>
+          <Text style={styles.label}>Niveau actif</Text>
+          <View style={{ flexDirection: "row" }}>
+            <Pressable onPress={() => setEditerActPhys(!editerNiveauActPhys)}>
+              <Text style={styles.icon}>⚙️</Text>
+            </Pressable>
+          </View>
+      </View>
+      {editerNiveauActPhys ? (
+          <Picker selectedValue={niveauActPhys} onValueChange={setNiveauActPhys}>
+            <Picker.Item label="Sédentaire" value="0" />
+            <Picker.Item label="Peu actif" value="1" />
+            <Picker.Item label="Actif" value="2" />
+            <Picker.Item label="Très actif" value="3" />
+          </Picker>
+        ) : (
+          <Text style={styles.value}>{niveauActPhys || "Non renseigné"}</Text>
+        )}
+    </View>
 
     {/* SAUVEGARDE */}
-    <Pressable style={styles.saveButton} onPress={sauvegarderUtilisateur}>
+    <Pressable style={styles.saveButton} 
+    onPress={() => {
+    sauvegarderUtilisateur()
+  }}>
       <Text style={styles.saveText}>Sauvegarder</Text>
     </Pressable>
+    <Pressable style={[styles.saveButton, { backgroundColor: "#444" }]}
+            onPress={async () => {
+              if (!db) return;
+              const user = await getUtilisateur(db, 1);
+              const suivi = await getDernierSuivi(db, 1);
+              console.log("🧠 DB USER:", user);
+              console.log("📊 DB SUIVI:", suivi);
+            }}
+            >
+              <Text style={styles.saveText}>Vérifier DB</Text>
+              </Pressable>
+
+
+  </ScrollView>
+
+  {montrerSpinner && (
+    <View style={styles.overlay}>
+        <View style={styles.spinnerBox}>
+          <DateTimeSpinner
+            mode="date"
+            dateTimeOrder={["date"]}
+            minDate={new Date("1920-01-01")}
+            maxDate={new Date()}
+            onDateChange={(value) => {
+              const newDate = value?.date ?? value ?? new Date()
+              setTempDate(newDate)
+            }}
+            LinearGradient={LinearGradient}
+            styles={styles.spinner}
+          />
+
+          <Pressable
+            onPress={() => {
+              setDateDeNaissance(tempDate)
+              setMontrerSpinner(false)
+            }}
+            style={styles.button}
+          >
+            <Text style={styles.buttonText}>Valider</Text>
+          </Pressable>
+        </View>
+      </View>
+      )}
   </View>
+ 
+
+
 )
 }
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: "#efc2f8",
+    backgroundColor: "#cab5ce",
     flexGrow: 1,
   },
+  overlay: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: "rgba(0,0,0,0.4)",
+  justifyContent: "center",
+  alignItems: "center",
+},
+spinnerBox: {
+  backgroundColor: "#cab5ce",
+  padding: 20,
+  borderRadius: 16,
+  width: "85%",
+},
 
   title: {
     fontSize: 28,
     fontWeight: "700",
     marginBottom: 20,
+    color : "#3f2346"
   },
 
   subtitle: {
@@ -261,12 +330,12 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderRadius: 12,
     padding: 10,
-    backgroundColor: "#fff",
+    backgroundColor: "#7d6b80",
     marginTop: 10,
   },
 
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: "#7d6b80",
     borderRadius: 16,
     padding: 16,
     marginBottom: 14,
@@ -286,6 +355,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: "600",
+    color : "#403352"
   },
 
   icon: {
@@ -294,7 +364,7 @@ const styles = StyleSheet.create({
 
   value: {
     fontSize: 15,
-    color: "#444",
+    color: "#281a38",
   },
 
   input: {
@@ -311,12 +381,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  spinnerContainer: {
-    marginTop: 10,
-  },
+
 
   button: {
-    marginTop: 10,
+    marginTop: 5,
     backgroundColor: "#7C5CFF",
     padding: 10,
     borderRadius: 10,
@@ -330,7 +398,7 @@ const styles = StyleSheet.create({
 
   saveButton: {
     marginTop: 20,
-    backgroundColor: "#ae49f1",
+    backgroundColor: "#90809b",
     padding: 14,
     borderRadius: 14,
     alignItems: "center",

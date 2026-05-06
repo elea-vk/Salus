@@ -2,24 +2,26 @@ import * as SQLite from 'expo-sqlite';
 
 let dbInstance: any = null;
 
+let dbPromise: Promise<any> | null = null;
 
-export async function initDatabase() {
+export function initDatabase() {
+  if (!dbPromise) {
+    dbPromise = (async () => {
+      const db = await SQLite.openDatabaseAsync("app.db");
     
-    if (dbInstance) return dbInstance;
+      await db.execAsync(`PRAGMA foreign_keys = ON;`);
     
-    dbInstance = await SQLite.openDatabaseAsync("app.db");
-    await dbInstance.execAsync(`PRAGMA foreign_keys = ON;`);
 
-  await dbInstance.execAsync(`
+ 
+      await db.execAsync(`
     CREATE TABLE IF NOT EXISTS utilisateur(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       prenom TEXT NOT NULL,
       dateDeNaissance TEXT NOT NULL,
       sexe TEXT NOT NULL
-    )
+        );
   `);
-
-  await dbInstance.execAsync(`
+      await db.execAsync(`
     CREATE TABLE IF NOT EXISTS suivi(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       utilisateur_id INTEGER NOT NULL,
@@ -29,81 +31,77 @@ export async function initDatabase() {
       FOREIGN KEY(utilisateur_id) REFERENCES utilisateur(id)
     )
   `);
-
-  await dbInstance.execAsync(`
+      await db.execAsync(`
     CREATE TABLE IF NOT EXISTS sommeil(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT UNIQUE,
       heuresSommeil REAL NOT NULL
-    )
+        );
   `);
-
-  await dbInstance.execAsync(`
+      await db.execAsync(`
     CREATE TABLE IF NOT EXISTS activite(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nom TEXT NOT NULL,
       date TEXT NOT NULL,
       tempsActivite REAL NOT NULL
-    )
+        );
   `);
-
-  await dbInstance.execAsync(`
+      await db.execAsync(`
     CREATE TABLE IF NOT EXISTS hydratation(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
       heure TEXT NOT NULL,
       quantite REAL NOT NULL
-    )
+        );
   `);
-
-  await dbInstance.execAsync(`
+      await db.execAsync(`
     CREATE TABLE IF NOT EXISTS journal(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
       heure TEXT NOT NULL,
       contenu TEXT NOT NULL
-    )
+        );
   `);
-
-  await dbInstance.execAsync(`
+      await db.execAsync(`
     CREATE TABLE IF NOT EXISTS stress(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
       niveau INTEGER NOT NULL,
       niveauAssocie TEXT NOT NULL
-    )
+        );
   `);
-
-  await dbInstance.execAsync(`
+      await db.execAsync(`
     CREATE TABLE IF NOT EXISTS alimentation(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
       repas TEXT NOT NULL,
       contenu TEXT NOT NULL
-    )
+        );
   `);
-
-  await dbInstance.execAsync(`
+      await db.execAsync(`
     CREATE TABLE IF NOT EXISTS habitudes(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
       contenu TEXT NOT NULL,
       faite INTEGER NOT NULL
-    )
+        );
   `);
-
-  await dbInstance.execAsync(`
+      await db.execAsync(`
     CREATE TABLE IF NOT EXISTS habitudesFaites(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       dateFaite TEXT NOT NULL,
       contenu TEXT NOT NULL
-    )
+        );
   `);
 
+      return db;
+    })();
+  }
  
- 
-  return dbInstance;
+  return dbPromise;
 }
+
+
 export async function ajouterNuit(db : any, date :string, heures : number) {
     return db.runAsync ('INSERT OR REPLACE INTO sommeil (date,heuresSommeil) VALUES (?,?)',[date, heures])
 }
@@ -213,8 +211,8 @@ export async function modifierPrenom(db : any, id : number, prenom : string) {
 /*export async function age(db : any, id : number, age : number) {
     return db.runAsync ('UPDATE utilisateur SET age =? WHERE id =?', [age,id])
 }*/
-export async function getUtilisateur(db: any) {
-  return db.getFirstAsync('SELECT * FROM utilisateur LIMIT 1');
+export async function getUtilisateur(db: any, id : number) {
+  return db.getFirstAsync('SELECT * FROM utilisateur LIMIT 1',[id]);
 }
 
 export async function supprimerUtilisateur(db : any, id : number) {
@@ -279,6 +277,7 @@ export async function recupererToutesHabitudesFaites (db : any) {
     return db.getAllAsync ('SELECT * FROM habitudesFaites')
 }
 
+
 export async function recupererToutesHabitudes(db: any) {
   return db.getAllAsync("SELECT * FROM habitudes");
 }
@@ -288,6 +287,13 @@ export async function toggleHabitude(db: any, id: number, done: number) {
   return db.runAsync(
     "UPDATE habitudes SET faite = ? WHERE id = ?",
     [done, id]
+  );
+}
+
+export async function supprimerHabitudeFaite(db: any, date: string, contenu: string) {
+  return db.runAsync(
+    "DELETE FROM habitudesFaites WHERE dateFaite = ? AND contenu = ?",
+    [date, contenu]
   );
 }
 

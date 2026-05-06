@@ -25,7 +25,7 @@ export default function Ouverture() {
 
   const gererSuite = async () => {
     if (!db) return;
-    const utilisateur = await getUtilisateur(db)
+    const utilisateur = await getUtilisateur(db,1)
     if (utilisateur?.id || skipInscription) {
       router.replace("/homePage")
     } 
@@ -37,10 +37,10 @@ export default function Ouverture() {
 
   const devUtil = async () => {
     if (!db) return
-    let utilisateur = await getUtilisateur(db)
+    let utilisateur = await getUtilisateur(db,1)
     if (!utilisateur) {
       await ajouterUtilisateur(db, "Dev", "2000-01-01", "Femme")
-      utilisateur = await getUtilisateur(db)
+      utilisateur = await getUtilisateur(db,1)
     }
     //console.log("DEV USER:", utilisateur)
     router.replace("/homePage")
