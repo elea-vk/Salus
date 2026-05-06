@@ -1,4 +1,10 @@
+// Importation des hooks React utilisés dans la page.
+// useEffect sert aux chargements/sauvegardes.
+// useMemo sert à recalculer certaines valeurs seulement quand les données changent.
+// useState sert à garder les valeurs en mémoire pendant l'utilisation de la page.
 import React, { useEffect, useMemo, useState } from "react";
+
+// Importation des composants React Native utilisés pour construire l'interface.
 import {
   Pressable,
   ScrollView,
@@ -7,8 +13,14 @@ import {
   TextInput,
   View,
 } from "react-native";
+
+// AsyncStorage permet de sauvegarder les données localement sur l'appareil.
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Ionicons sert à afficher des icônes, comme la poubelle ou le bouton ajouter.
 import Ionicons from "@expo/vector-icons/Ionicons";
+
+// react-native-svg sert à dessiner le graphique du poids.
 import Svg, {
   Circle,
   Line,
@@ -16,10 +28,20 @@ import Svg, {
   Text as SvgText,
 } from "react-native-svg";
 
+// -------------------------
+// Types TypeScript
+// -------------------------
+
+// Unité utilisée pour le poids.
 type UnitePoids = "kg" | "lbs";
+
+// Périodes possibles pour afficher la tendance de prise/perte de poids.
 type PeriodeTendance = "jour" | "semaine" | "mois" | "annee";
+
+// Onglets internes de la page poids.
 type OngletPoids = "entrees" | "graphique";
 
+// Structure d'une entrée de poids sauvegardée.
 type EntreePoids = {
   id: string;
   poids: string;
@@ -27,55 +49,80 @@ type EntreePoids = {
   unite: UnitePoids;
 };
 
+// Structure de l'objectif de poids de l'utilisateur.
 type ObjectifPoids = {
   poids: string;
   date: string;
   unite: UnitePoids;
 };
 
+// -------------------------
+// Clés AsyncStorage
+// -------------------------
+
+// Clé utilisée pour sauvegarder toutes les entrées de poids.
 const CLE_ENTREES_POIDS = "@salus_poids_entrees";
+
+// Clé utilisée pour sauvegarder l'objectif de poids.
 const CLE_OBJECTIF_POIDS = "@salus_poids_objectif";
 
+// -------------------------
+// Fonctions utilitaires
+// -------------------------
+
+// Crée un identifiant unique pour chaque entrée ajoutée.
 function creerIdUnique() {
   return `${Date.now()}-${Math.random()}`;
 }
 
+// Retourne la date d'aujourd'hui au format AAAA-MM-JJ.
 function obtenirDateAujourdhui() {
   return new Date().toISOString().split("T")[0];
 }
 
+// Convertit un texte en nombre.
+// La fonction accepte aussi les virgules, par exemple "80,5".
 function convertirEnNombre(valeur: string): number {
   const nombre = Number(valeur.replace(",", "."));
   return Number.isFinite(nombre) ? nombre : 0;
 }
 
+// Convertit une valeur de poids en kilogrammes.
+// Les calculs internes utilisent le kg pour garder une unité commune.
 function convertirEnKg(poids: number, unite: UnitePoids) {
   return unite === "kg" ? poids : poids * 0.45359237;
 }
 
+// Convertit un poids en kg vers l'unité choisie par l'utilisateur.
 function convertirDepuisKg(poidsKg: number, unite: UnitePoids) {
   return unite === "kg" ? poidsKg : poidsKg / 0.45359237;
 }
 
+// Arrondit une valeur numérique.
 function arrondir(valeur: number, decimales = 1) {
   const facteur = Math.pow(10, decimales);
   return Math.round(valeur * facteur) / facteur;
 }
 
+// Transforme une date au format AAAA-MM-JJ en timestamp.
+// Cela permet de comparer les dates et de les placer sur l'axe X du graphique.
 function convertirDateEnTemps(date: string) {
   return new Date(`${date}T00:00:00`).getTime();
 }
 
+// Transforme une date AAAA-MM-JJ en format JJ/MM/AAAA pour l'affichage.
 function formaterDate(date: string) {
   const morceaux = date.split("-");
   if (morceaux.length !== 3) return date;
   return `${morceaux[2]}/${morceaux[1]}/${morceaux[0]}`;
 }
 
+// Crée une date complète à partir d'une année, d'un mois et d'un jour.
 function creerDate(annee: string, mois: string, jour: string) {
   return `${annee}-${mois.padStart(2, "0")}-${jour.padStart(2, "0")}`;
 }
 
+// Sépare une date AAAA-MM-JJ en année, mois et jour.
 function separerDate(date: string) {
   const morceaux = date.split("-");
   return {
@@ -85,6 +132,8 @@ function separerDate(date: string) {
   };
 }
 
+// Calcule une régression linéaire simple.
+// Elle sert à obtenir une ligne de tendance du poids selon le temps.
 function calculerRegression(points: { x: number; y: number }[]) {
   if (points.length < 2) return null;
 
@@ -103,6 +152,7 @@ function calculerRegression(points: { x: number; y: number }[]) {
   return { pente, ordonnee };
 }
 
+// Convertit la tendance par jour en tendance par semaine, mois ou année.
 function convertirTendanceParPeriode(
   tendanceParJour: number,
   periode: PeriodeTendance
@@ -113,6 +163,7 @@ function convertirTendanceParPeriode(
   return tendanceParJour * 365;
 }
 
+// Retourne le texte affiché pour la période choisie.
 function libellePeriode(periode: PeriodeTendance) {
   if (periode === "jour") return "jour";
   if (periode === "semaine") return "semaine";
@@ -120,6 +171,8 @@ function libellePeriode(periode: PeriodeTendance) {
   return "année";
 }
 
+// Calcule des limites propres pour l'axe Y du graphique.
+// Cela évite que le graphique soit trop serré autour des points.
 function calculerLimitesAxeY(valeurs: number[]) {
   if (valeurs.length === 0) {
     return { minY: 0, maxY: 10 };
@@ -143,28 +196,38 @@ function calculerLimitesAxeY(valeurs: number[]) {
   return { minY, maxY };
 }
 
+// -------------------------
+// Composant SelecteurDate
+// -------------------------
+
 type SelecteurDateProps = {
   date: string;
   onChangeDate: (date: string) => void;
 };
 
+// Ce composant affiche trois listes scrollables : année, mois et jour.
+// Il sert à choisir une date sans écrire manuellement dans un TextInput.
 function SelecteurDate({ date, onChangeDate }: SelecteurDateProps) {
   const { annee, mois, jour } = separerDate(date);
 
   const anneeActuelle = new Date().getFullYear();
 
+  // Liste d'années disponibles : de 30 ans avant aujourd'hui à 10 ans après.
   const annees = Array.from({ length: 41 }, (_, index) =>
     String(anneeActuelle - 30 + index)
   );
 
+  // Liste des mois de 01 à 12.
   const moisListe = Array.from({ length: 12 }, (_, index) =>
     String(index + 1).padStart(2, "0")
   );
 
+  // Liste des jours de 01 à 31.
   const joursListe = Array.from({ length: 31 }, (_, index) =>
     String(index + 1).padStart(2, "0")
   );
 
+  // Met à jour la date complète quand l'utilisateur choisit une année, un mois ou un jour.
   const mettreAJour = (
     nouvelleAnnee: string,
     nouveauMois: string,
@@ -175,6 +238,7 @@ function SelecteurDate({ date, onChangeDate }: SelecteurDateProps) {
 
   return (
     <View style={styles.selecteurDate}>
+      {/* Colonne pour choisir l'année */}
       <View style={styles.colonneDate}>
         <Text style={styles.libelleChamp}>Année</Text>
         <ScrollView style={styles.listeDate} showsVerticalScrollIndicator={false}>
@@ -200,6 +264,7 @@ function SelecteurDate({ date, onChangeDate }: SelecteurDateProps) {
         </ScrollView>
       </View>
 
+      {/* Colonne pour choisir le mois */}
       <View style={styles.colonneDate}>
         <Text style={styles.libelleChamp}>Mois</Text>
         <ScrollView style={styles.listeDate} showsVerticalScrollIndicator={false}>
@@ -225,6 +290,7 @@ function SelecteurDate({ date, onChangeDate }: SelecteurDateProps) {
         </ScrollView>
       </View>
 
+      {/* Colonne pour choisir le jour */}
       <View style={styles.colonneDate}>
         <Text style={styles.libelleChamp}>Jour</Text>
         <ScrollView style={styles.listeDate} showsVerticalScrollIndicator={false}>
@@ -253,24 +319,34 @@ function SelecteurDate({ date, onChangeDate }: SelecteurDateProps) {
   );
 }
 
+// -------------------------
+// Écran principal
+// -------------------------
+
 export default function Poid() {
+  // Onglet actif : soit la section des entrées, soit la section graphique.
   const [ongletActif, setOngletActif] = useState<OngletPoids>("entrees");
 
+  // Valeurs du formulaire pour ajouter une nouvelle entrée de poids.
   const [poids, setPoids] = useState("");
   const [date, setDate] = useState(obtenirDateAujourdhui());
   const [unite, setUnite] = useState<UnitePoids>("kg");
 
+  // Liste de toutes les entrées de poids sauvegardées.
   const [entreesPoids, setEntreesPoids] = useState<EntreePoids[]>([]);
 
+  // Objectif de poids choisi par l'utilisateur.
   const [objectifPoids, setObjectifPoids] = useState<ObjectifPoids>({
     poids: "",
     date: obtenirDateAujourdhui(),
     unite: "kg",
   });
 
+  // Période choisie pour afficher la tendance.
   const [periodeTendance, setPeriodeTendance] =
     useState<PeriodeTendance>("semaine");
 
+  // Charge les données sauvegardées quand la page s'ouvre.
   useEffect(() => {
     const chargerDonnees = async () => {
       try {
@@ -294,6 +370,7 @@ export default function Poid() {
     chargerDonnees();
   }, []);
 
+  // Sauvegarde automatiquement les entrées de poids dès que la liste change.
   useEffect(() => {
     AsyncStorage.setItem(CLE_ENTREES_POIDS, JSON.stringify(entreesPoids)).catch(
       (erreur) => {
@@ -302,6 +379,7 @@ export default function Poid() {
     );
   }, [entreesPoids]);
 
+  // Sauvegarde automatiquement l'objectif de poids dès qu'il change.
   useEffect(() => {
     AsyncStorage.setItem(CLE_OBJECTIF_POIDS, JSON.stringify(objectifPoids)).catch(
       (erreur) => {
@@ -310,12 +388,15 @@ export default function Poid() {
     );
   }, [objectifPoids]);
 
+  // Trie les entrées de poids par date, de la plus ancienne à la plus récente.
   const entreesTriees = useMemo(() => {
     return [...entreesPoids].sort(
       (a, b) => convertirDateEnTemps(a.date) - convertirDateEnTemps(b.date)
     );
   }, [entreesPoids]);
 
+  // Prépare les données utilisées pour le graphique.
+  // Chaque poids est converti en kg pour avoir une base commune.
   const donneesGraphique = useMemo(() => {
     return entreesTriees
       .map((entree) => {
@@ -330,8 +411,10 @@ export default function Poid() {
       .filter((point) => point.yKg > 0);
   }, [entreesTriees]);
 
+  // L'unité d'affichage dépend du bouton kg/lbs choisi dans la section entrée.
   const uniteAffichage = unite;
 
+  // Calcule le poids actuel, donc la dernière entrée selon la date.
   const poidsActuel = useMemo(() => {
     if (donneesGraphique.length === 0) return 0;
     return convertirDepuisKg(
@@ -340,17 +423,22 @@ export default function Poid() {
     );
   }, [donneesGraphique, uniteAffichage]);
 
+  // Calcule le premier poids enregistré.
   const premierPoids = useMemo(() => {
     if (donneesGraphique.length === 0) return 0;
     return convertirDepuisKg(donneesGraphique[0].yKg, uniteAffichage);
   }, [donneesGraphique, uniteAffichage]);
 
+  // Différence entre le poids actuel et le premier poids.
   const differenceTotale = poidsActuel - premierPoids;
 
+  // Calcule la régression linéaire pour la tendance.
   const regression = useMemo(() => {
     if (donneesGraphique.length < 2) return null;
 
     const premierJour = donneesGraphique[0].x;
+
+    // Convertit les dates en nombre de jours depuis la première entrée.
     const points = donneesGraphique.map((point) => ({
       x: (point.x - premierJour) / (1000 * 60 * 60 * 24),
       y: convertirDepuisKg(point.yKg, uniteAffichage),
@@ -359,15 +447,20 @@ export default function Poid() {
     return calculerRegression(points);
   }, [donneesGraphique, uniteAffichage]);
 
+  // Pente de la régression : variation de poids par jour.
   const tendanceParJour = regression?.pente ?? 0;
+
+  // Convertit la tendance selon la période choisie.
   const tendanceSelonPeriode = convertirTendanceParPeriode(
     tendanceParJour,
     periodeTendance
   );
 
+  // Ajoute une nouvelle entrée de poids.
   const ajouterEntreePoids = () => {
     const poidsNombre = convertirEnNombre(poids);
 
+    // Empêche d'ajouter une entrée vide ou invalide.
     if (!poidsNombre || !date) return;
 
     const nouvelleEntree: EntreePoids = {
@@ -378,16 +471,20 @@ export default function Poid() {
     };
 
     setEntreesPoids((precedent) => [...precedent, nouvelleEntree]);
+
+    // Réinitialise le formulaire après ajout.
     setPoids("");
     setDate(obtenirDateAujourdhui());
   };
 
+  // Supprime une entrée selon son identifiant.
   const supprimerEntreePoids = (id: string) => {
     setEntreesPoids((precedent) =>
       precedent.filter((entree) => entree.id !== id)
     );
   };
 
+  // Met à jour une valeur dans l'objectif de poids.
   const mettreAJourObjectif = (
     champ: keyof ObjectifPoids,
     valeur: string | UnitePoids
@@ -398,15 +495,18 @@ export default function Poid() {
     }));
   };
 
+  // Prépare toutes les données nécessaires pour dessiner le graphique SVG.
   const graphique = useMemo(() => {
     const largeurMinimale = 360;
     const hauteur = 390;
     const pixelsParJour = 10;
+
     const paddingGauche = 58;
     const paddingBas = 58;
     const paddingHaut = 34;
     const paddingDroite = 24;
 
+    // Si aucune donnée n'existe, on retourne une structure vide.
     if (donneesGraphique.length === 0) {
       return {
         largeur: largeurMinimale,
@@ -427,26 +527,33 @@ export default function Poid() {
       };
     }
 
+    // Convertit l'objectif de poids en kg.
     const objectifNombre = convertirEnNombre(objectifPoids.poids);
     const objectifKg = objectifNombre
       ? convertirEnKg(objectifNombre, objectifPoids.unite)
       : null;
 
+    // Dates et poids réels utilisés dans le graphique.
     const datesX = donneesGraphique.map((point) => point.x);
     const poidsY = donneesGraphique.map((point) =>
       convertirDepuisKg(point.yKg, uniteAffichage)
     );
 
+    // Date objectif convertie en timestamp.
     const dateObjectifTemps = objectifPoids.date
       ? convertirDateEnTemps(objectifPoids.date)
       : null;
 
     const minX = Math.min(...datesX);
+
+    // Le maxX inclut la date objectif pour que la ligne objectif soit visible.
     const maxX = Math.max(
       ...datesX,
       dateObjectifTemps !== null ? dateObjectifTemps : minX
     );
 
+    // Calcule la largeur du graphique selon la durée totale.
+    // Plus la date objectif est loin, plus le graphique devient large.
     const nombreJours = Math.max(
       1,
       (maxX - minX) / (1000 * 60 * 60 * 24)
@@ -457,9 +564,11 @@ export default function Poid() {
       nombreJours * pixelsParJour + paddingGauche + paddingDroite
     );
 
+    // Convertit le poids objectif dans l'unité d'affichage.
     const poidsObjectifAffiche =
       objectifKg !== null ? convertirDepuisKg(objectifKg, uniteAffichage) : null;
 
+    // Inclut le poids objectif dans le calcul des limites de l'axe Y.
     const toutesValeursY =
       poidsObjectifAffiche !== null
         ? [...poidsY, poidsObjectifAffiche]
@@ -468,6 +577,7 @@ export default function Poid() {
     const { minY, maxY } = calculerLimitesAxeY(toutesValeursY);
     const milieuY = (minY + maxY) / 2;
 
+    // Convertit une date/timestamp en position horizontale sur le SVG.
     const convertirX = (x: number) => {
       if (maxX === minX) return largeur / 2;
       return (
@@ -477,6 +587,7 @@ export default function Poid() {
       );
     };
 
+    // Convertit un poids en position verticale sur le SVG.
     const convertirY = (y: number) => {
       if (maxY === minY) return hauteur / 2;
       return (
@@ -487,6 +598,7 @@ export default function Poid() {
       );
     };
 
+    // Points réels du graphique après conversion en positions SVG.
     const pointsBruts = donneesGraphique.map((point) => {
       const poidsAffiche = convertirDepuisKg(point.yKg, uniteAffichage);
 
@@ -498,10 +610,12 @@ export default function Poid() {
       };
     });
 
+    // Polyline a besoin d'une chaîne de points sous la forme "x,y x,y x,y".
     const points = pointsBruts.map((point) => `${point.x},${point.y}`).join(" ");
 
     let ligneRegression = null;
 
+    // Prépare la ligne de tendance si au moins deux points existent.
     if (regression && donneesGraphique.length >= 2) {
       const premierJour = donneesGraphique[0].x;
       const xDebutJour = (minX - premierJour) / (1000 * 60 * 60 * 24);
@@ -520,6 +634,7 @@ export default function Poid() {
 
     let ligneObjectif = null;
 
+    // Prépare la ligne pointillée de l'objectif.
     if (
       objectifKg !== null &&
       objectifPoids.date &&
@@ -537,6 +652,7 @@ export default function Poid() {
       };
     }
 
+    // Étiquettes de temps affichées sur l'axe X.
     const etiquettesTemps =
       donneesGraphique.length === 1
         ? [
@@ -568,6 +684,7 @@ export default function Poid() {
             },
           ];
 
+    // Étiquettes de poids affichées sur l'axe Y.
     const etiquettesPoids = [
       {
         y: convertirY(maxY),
@@ -607,6 +724,7 @@ export default function Poid() {
       <ScrollView contentContainerStyle={styles.conteneur}>
         <Text style={styles.titre}>Poids</Text>
 
+        {/* Onglets pour changer entre la page d'entrées et la page graphique. */}
         <View style={styles.barreOnglets}>
           <Pressable
             style={[
@@ -645,6 +763,7 @@ export default function Poid() {
 
         {ongletActif === "entrees" ? (
           <>
+            {/* Carte qui affiche le poids actuel et le changement total. */}
             <View style={styles.carteResume}>
               <Text style={styles.sousTitre}>Poids actuel</Text>
               <Text style={styles.grosNombre}>
@@ -662,9 +781,11 @@ export default function Poid() {
               </Text>
             </View>
 
+            {/* Formulaire pour ajouter une nouvelle entrée de poids. */}
             <View style={styles.carteSection}>
               <Text style={styles.titreSection}>Ajouter une entrée</Text>
 
+              {/* Choix de l'unité de poids pour la nouvelle entrée. */}
               <View style={styles.rangeeChoix}>
                 {(["kg", "lbs"] as UnitePoids[]).map((choix) => (
                   <Pressable
@@ -687,6 +808,7 @@ export default function Poid() {
                 ))}
               </View>
 
+              {/* Champ pour écrire le poids. */}
               <View style={styles.groupeChamp}>
                 <Text style={styles.libelleChamp}>Poids</Text>
                 <TextInput
@@ -699,6 +821,7 @@ export default function Poid() {
                 />
               </View>
 
+              {/* Sélecteur de date pour l'entrée de poids. */}
               <View style={styles.groupeChamp}>
                 <Text style={styles.libelleChamp}>Date</Text>
                 <Text style={styles.dateSelectionnee}>
@@ -707,6 +830,7 @@ export default function Poid() {
                 <SelecteurDate date={date} onChangeDate={setDate} />
               </View>
 
+              {/* Bouton qui ajoute l'entrée dans la liste. */}
               <Pressable
                 style={styles.boutonPrincipal}
                 onPress={ajouterEntreePoids}
@@ -718,6 +842,7 @@ export default function Poid() {
               </Pressable>
             </View>
 
+            {/* Liste des entrées déjà sauvegardées. */}
             <View style={styles.carteSection}>
               <Text style={styles.titreSection}>Entrées de poids</Text>
 
@@ -752,6 +877,7 @@ export default function Poid() {
           </>
         ) : (
           <>
+            {/* Section graphique. */}
             <View style={styles.carteSection}>
               <Text style={styles.titreSection}>Graphique</Text>
               <Text style={styles.sousTexte}>
@@ -765,12 +891,14 @@ export default function Poid() {
                 </Text>
               ) : (
                 <View style={styles.conteneurGraphique}>
+                  {/* Scroll horizontal pour voir les objectifs ou tendances plus loin dans le temps. */}
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={true}
                     contentContainerStyle={styles.contenuGraphiqueHorizontal}
                   >
                     <Svg width={graphique.largeur} height={graphique.hauteur}>
+                      {/* Axe horizontal */}
                       <Line
                         x1={graphique.paddingGauche}
                         y1={graphique.hauteur - graphique.paddingBas}
@@ -780,6 +908,7 @@ export default function Poid() {
                         strokeWidth={1}
                       />
 
+                      {/* Axe vertical */}
                       <Line
                         x1={graphique.paddingGauche}
                         y1={graphique.paddingHaut}
@@ -789,6 +918,7 @@ export default function Poid() {
                         strokeWidth={1}
                       />
 
+                      {/* Lignes horizontales et valeurs de l'axe Y */}
                       {graphique.etiquettesPoids.map((etiquette, index) => (
                         <React.Fragment key={`poids-${index}`}>
                           <Line
@@ -810,6 +940,7 @@ export default function Poid() {
                         </React.Fragment>
                       ))}
 
+                      {/* Ligne pointillée de l'objectif de poids */}
                       {graphique.ligneObjectif ? (
                         <Line
                           x1={graphique.ligneObjectif.x1}
@@ -822,6 +953,7 @@ export default function Poid() {
                         />
                       ) : null}
 
+                      {/* Ligne blanche de régression/tendance */}
                       {graphique.ligneRegression ? (
                         <Line
                           x1={graphique.ligneRegression.x1}
@@ -833,6 +965,7 @@ export default function Poid() {
                         />
                       ) : null}
 
+                      {/* Ligne rose reliant les vrais points de poids */}
                       {graphique.points ? (
                         <Polyline
                           points={graphique.points}
@@ -842,6 +975,7 @@ export default function Poid() {
                         />
                       ) : null}
 
+                      {/* Points roses individuels sur le graphique */}
                       {graphique.pointsBruts.map((point, index) => (
                         <Circle
                           key={`${point.date}-${index}`}
@@ -852,6 +986,7 @@ export default function Poid() {
                         />
                       ))}
 
+                      {/* Étiquettes de date sur l'axe X */}
                       {graphique.etiquettesTemps.map((etiquette, index) => (
                         <SvgText
                           key={`${etiquette.label}-${index}`}
@@ -869,9 +1004,11 @@ export default function Poid() {
               )}
             </View>
 
+            {/* Section pour définir l'objectif de poids. */}
             <View style={styles.carteSection}>
               <Text style={styles.titreSection}>Objectif de poids</Text>
 
+              {/* Choix de l'unité de l'objectif. */}
               <View style={styles.rangeeChoix}>
                 {(["kg", "lbs"] as UnitePoids[]).map((choix) => (
                   <Pressable
@@ -896,6 +1033,7 @@ export default function Poid() {
                 ))}
               </View>
 
+              {/* Champ pour le poids objectif. */}
               <View style={styles.groupeChamp}>
                 <Text style={styles.libelleChamp}>Poids objectif</Text>
                 <TextInput
@@ -910,6 +1048,7 @@ export default function Poid() {
                 />
               </View>
 
+              {/* Date objectif avec le même sélecteur de date. */}
               <View style={styles.groupeChamp}>
                 <Text style={styles.libelleChamp}>Date objectif</Text>
                 <Text style={styles.dateSelectionnee}>
@@ -924,6 +1063,7 @@ export default function Poid() {
               </View>
             </View>
 
+            {/* Section tendance : variation par jour, semaine, mois ou année. */}
             <View style={styles.carteSection}>
               <Text style={styles.titreSection}>Tendance</Text>
 
@@ -968,6 +1108,10 @@ export default function Poid() {
     </View>
   );
 }
+
+// -------------------------
+// Styles
+// -------------------------
 
 const styles = StyleSheet.create({
   ecran: {
