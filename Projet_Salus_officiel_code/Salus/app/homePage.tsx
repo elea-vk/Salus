@@ -60,7 +60,6 @@ export default function Index() {
             <Ionicons name="barbell-outline" size={41} color={Couleurs.secondary} />
           </Pressable>
 
-          {/* 🔥 NOUVEAU BOUTON ALIMENTATION */}
           <Pressable
             style={styles.pageButton}
             onPress={() => router.push("/alimentation")}
@@ -83,6 +82,14 @@ export default function Index() {
             onPress={() => router.push("/habitudes")}
           >
             <Ionicons name="checkmark-circle-outline" size={41} color={Couleurs.secondary} />
+          </Pressable>
+
+          {/* NOUVEAU BOUTON POIDS */}
+          <Pressable
+            style={styles.pageButton}
+            onPress={() => router.push("/poid")}
+          >
+            <Ionicons name="scale-outline" size={41} color={Couleurs.secondary} />
           </Pressable>
         </View>
 
