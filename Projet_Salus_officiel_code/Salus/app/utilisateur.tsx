@@ -38,8 +38,8 @@ export default function PageUtilisateur() {
       const database = await initDatabase()
       
 
-      const utilisateur = await getUtilisateur(database)
-      const suivi = await getDernierSuivi(database, 1)
+      const utilisateur = await getUtilisateur(database,1)
+      const suivi = await getDernierSuivi(database,1)
       if (utilisateur) {
         const user = new Utilisateur(utilisateur.prenom,new Date(utilisateur.dateDeNaissance),utilisateur.sexe,utilisateur.id)
         setUtilisateurObj(user);
@@ -63,7 +63,7 @@ export default function PageUtilisateur() {
     const dateUtil = datedeNaissance instanceof Date && !isNaN(datedeNaissance.getTime())? datedeNaissance.toISOString().split("T")[0]: new Date().toISOString().split("T")[0]
 
     // 1. profil
-    const existe = await getUtilisateur(db)
+    const existe = await getUtilisateur(db,1)
     if (!existe) {
       await ajouterUtilisateur(db, nom, dateUtil, sexe)
     } 
