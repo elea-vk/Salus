@@ -279,4 +279,15 @@ export async function recupererToutesHabitudesFaites (db : any) {
     return db.getAllAsync ('SELECT * FROM habitudesFaites')
 }
 
+export async function recupererToutesHabitudes(db: any) {
+  return db.getAllAsync("SELECT * FROM habitudes");
+}
+
+
+export async function toggleHabitude(db: any, id: number, done: number) {
+  return db.runAsync(
+    "UPDATE habitudes SET faite = ? WHERE id = ?",
+    [done, id]
+  );
+}
 
