@@ -30,7 +30,6 @@ export function initDatabase() {
       FOREIGN KEY(utilisateur_id) REFERENCES utilisateur(id)
     )
   `);
- 
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS sommeil(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,7 +37,6 @@ export function initDatabase() {
           heuresSommeil REAL NOT NULL
         );
       `);
- 
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS activite(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,7 +45,6 @@ export function initDatabase() {
           tempsActivite REAL NOT NULL
         );
       `);
- 
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS hydratation(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,7 +53,6 @@ export function initDatabase() {
           quantite REAL NOT NULL
         );
       `);
- 
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS journal(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,7 +61,6 @@ export function initDatabase() {
           contenu TEXT NOT NULL
         );
       `);
- 
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS stress(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,7 +69,6 @@ export function initDatabase() {
           niveauAssocie TEXT NOT NULL
         );
       `);
- 
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS alimentation(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,7 +77,6 @@ export function initDatabase() {
           contenu TEXT NOT NULL
         );
       `);
- 
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS habitudes(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -92,7 +85,6 @@ export function initDatabase() {
           faite INTEGER NOT NULL
         );
       `);
- 
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS habitudesFaites(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,15 +92,15 @@ export function initDatabase() {
           contenu TEXT NOT NULL
         );
       `);
- 
+
       return db;
     })();
   }
- 
+
   return dbPromise;
 }
- 
- 
+
+
 export async function ajouterNuit(db : any, date :string, heures : number) {
     return db.runAsync ('INSERT OR REPLACE INTO sommeil (date,heuresSommeil) VALUES (?,?)',[date, heures])
 }
@@ -283,5 +275,3 @@ export async function recupererHabitudeFaite(db : any, contenu : string) {
 export async function recupererToutesHabitudesFaites (db : any) {
     return db.getAllAsync ('SELECT * FROM habitudesFaites')
 }
- 
- 

@@ -45,7 +45,7 @@ export default function PageUtilisateur() {
       
 
       const utilisateur = await getUtilisateur(database,1)
-      const suivi = await getDernierSuivi(database, 1)
+      const suivi = await getDernierSuivi(database,1)
       if (utilisateur) {
         const user = new Utilisateur(utilisateur.prenom,new Date(utilisateur.dateDeNaissance),utilisateur.sexe,utilisateur.id)
         setUtilisateurObj(user);

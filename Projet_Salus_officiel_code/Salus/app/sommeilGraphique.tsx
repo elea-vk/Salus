@@ -1,85 +1,106 @@
-import { useState, useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { LineChart } from "react-native-gifted-charts";
-import {initDatabase, recupererToutesNuits } from "@/data/dataAPP";
-import Couleurs from "../constantes/couleurs";
+import { useState } from "react";
+import { View,Text, Dimensions} from "react-native"
+import { LineChart } from "react-native-gifted-charts" //importation depuis https://github.com/Abhinandan-Kushwaha/react-native-gifted-charts/tree/master
+import { useEffect } from "react";
+import { initDatabase,recupererToutesNuits } from "@/data/dataAPP";
+import { StyleSheet,Pressable } from "react-native";
+import { Statistique } from "@/src/statistiques";
+import { TouchEventType } from "react-native-gesture-handler/lib/typescript/web/interfaces";
+import Couleurs from "@/constantes/couleurs";
+import { Picker } from '@react-native-picker/picker';
+import { DataPoint } from "@/src/DataPoint";
 
-const GraphiqueSommeil = () => {
-  const [donnee, setDonnee] = useState([]);
 
-  useEffect(() => {
-    async function init() {
-      const db = await initDatabase();
-      const toutesNuits = await recupererToutesNuits(db);
 
-      const transfData = toutesNuits
-        .sort(
-          (a: any, b: any) =>
-            new Date(a.date).getTime() - new Date(b.date).getTime()
-        )
-        .map((item: any) => ({
-          value: item.heuresSommeil,
-          label: item.date.slice(5, 10), // MM-DD
-          frontColor: Couleurs.primary,
-        }));
+//documentation graphique : https://gifted-charts.web.app/linechart/#negative
 
-      setDonnee(transfData);
-    }
+//set des données plus méthodes pour utilisateur peut entrer des données
+const SommeilGraphique = () => {
+    //const [value,setValue] = useState ("")
+    const [db, setDb] = useState<any>(null);
+    const [donnee, setDonnee] = useState <DataPoint[]>([]); ;
+    const [intervalle,setIntervalle]=useState("");
+    
+    const stats=new Statistique();
+    let [moyenne,setMoyenne] = useState <number | null>(null);
+    
+    
 
-    init();
-  }, []);
+   
+    
+    
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Évolution du sommeil</Text>
+    useEffect (()=>{
+        async function init() {
+          const temp = await stats.TrierTableauDonnees(intervalle);
+          setDonnee(temp);
+          stats.calculerMoyenneHeuresSommeilIntervalle(intervalle).then((data) => {
+          setMoyenne(data);});
+        }
+        init()
+      },[intervalle]) //ouverture de la base de données et récupération des données
 
-      {donnee.length === 0 ? (
-        <Text style={styles.emptyText}>
-          Aucune donnée pour le moment
-        </Text>
-      ) : (
+    
+    
+     
+     //récupération des données et ytransformation pour affichage sur l'axe x
+  
+    return (
+        <View style = {styles.container}>
+            
+       <Picker
+            selectedValue={intervalle}
+             onValueChange={(itemValue) => setIntervalle(itemValue)}
+            style={{ width: 200 }}
+            >
+            <Picker.Item label="Mensuel" value="Mensuel" />
+            <Picker.Item label="Annuel" value="Annuel" />
+            <Picker.Item label="7 derniers jours" value="Hebdomadaire" />
+        </Picker>
+        <Text>Moyenne : {intervalle}</Text>
         <LineChart
-          data={donnee}
-          spacing={45}
-          thickness={4}
-          color={Couleurs.primary}
-          dataPointsColor={Couleurs.darkText}
-          hideRules
-          yAxisColor={Couleurs.darkText}
-          xAxisColor={Couleurs.darkText}
-          yAxisThickness={2}
-          xAxisThickness={2}
-          curved
-          startFillColor={Couleurs.primary}
-          endFillColor="transparent"
-          startOpacity={0.2}
-          endOpacity={0}
-        />
-      )}
-    </View>
-  );
-};
+            color1="#c96675"
+            dataPointsColor1="#630f1a"
+            data={donnee}
+            spacing1={50}
+            thickness1={4}
+            hideRules
+            yAxisColor={"#630f1a"}
+            xAxisColor={"#630f1a"}
+            yAxisThickness={3}
+            
+            xAxisThickness={3}
+            curved
+            width={Dimensions.get("window").width-100}
+            backgroundColor={Couleurs.lightText}
+            showReferenceLine1
+            referenceLine1Position={moyenne !== null ? moyenne : 0}
+            referenceLine1Config={{color:Couleurs.darkText,thickness:3,labelText:"Moyenne",dashWidth:Dimensions.get("screen").width-10}}/>
+            
+            
+        
+        
 
-export default GraphiqueSommeil;
+        <View>
+           <Text>Moyenne de l'année:{stats.calculerMoyenneHeuresSommeilIntervalle("Annuel")} </Text> 
+           <Text>Moyenne du mois: {stats.calculerMoyenneHeuresSommeilIntervalle("Mensuel")}</Text>
+           <Text>Moyenne des 7 dernières entrées: {stats.calculerMoyenneHeuresSommeilIntervalle("Hebdomadaire")}</Text>
+        </View>
+        </View>
+        
+    );
+}
+
 
 const styles = StyleSheet.create({
-  container: {
+    container: {
     flex: 1,
-    backgroundColor: Couleurs.background,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
+    backgroundColor:'#e8c0d7',
+    gap:16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    },
+}) 
 
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: Couleurs.darkText,
-  },
 
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-  },
-});
+export default SommeilGraphique

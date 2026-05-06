@@ -19,573 +19,628 @@ import {
   Swipeable,
 } from "react-native-gesture-handler";
 
-type SideView = "front" | "back";
-type SheetTab = "infos" | "exercices";
-type WorkoutTab = "create" | "saved";
+// Représente le côté du corps affiché par le composant Body.
+// Les valeurs restent en anglais, car elles sont utilisées par la librairie.
+type VueCorps = "front" | "back";
 
-type ExerciseItem = {
-  name: string;
+// Onglets de la fiche d'information d'un muscle.
+type OngletFiche = "infos" | "exercices";
+
+// Onglets du générateur de programmes.
+type OngletProgramme = "creer" | "sauvegardes";
+
+// Représente un exercice visuel associé à un muscle.
+type ExerciceVisuel = {
+  nom: string;
   image?: any;
 };
 
-type MuscleInfo = {
-  title: string;
-  scientific: string;
+// Contient toutes les informations affichées pour un muscle.
+type InfoMuscle = {
+  titre: string;
+  nomScientifique: string;
   description: string;
-  functions: string[];
-  exercises: ExerciseItem[];
-  rest: string;
-  safety: string;
+  fonctions: string[];
+  exercices: ExerciceVisuel[];
+  repos: string;
+  securite: string;
 };
 
-type WorkoutExercise = {
+// Représente un exercice saisi dans un programme personnalisé.
+type ExerciceProgramme = {
   id: string;
-  name: string;
-  sets: string;
-  reps: string;
-  weight: string;
+  nom: string;
+  series: string;
+  repetitions: string;
+  poids: string;
 };
 
-type SavedWorkout = {
+// Représente un programme sauvegardé avec son titre et ses exercices.
+type ProgrammeSauvegarde = {
   id: string;
-  title: string;
-  exercises: WorkoutExercise[];
+  titre: string;
+  exercices: ExerciceProgramme[];
 };
 
-const SCREEN_HEIGHT = Dimensions.get("window").height;
-const WORKOUTS_STORAGE_KEY = "@salus_saved_workouts";
+// Hauteur de l'écran utilisée pour les animations des feuilles modales.
+const HAUTEUR_ECRAN = Dimensions.get("window").height;
 
-const MUSCLE_INFO: Record<string, MuscleInfo> = {
+// Clé utilisée pour sauvegarder les programmes dans AsyncStorage.
+const CLE_STOCKAGE_PROGRAMMES = "@salus_saved_workouts";
+
+// Banque de données locale contenant les informations de chaque muscle.
+// Les clés comme "chest" ou "upper-back" doivent rester en anglais,
+// car elles correspondent aux slugs retournés par la librairie du corps interactif.
+const INFOS_MUSCLES: Record<string, InfoMuscle> = {
   chest: {
-    title: "Pectoraux",
-    scientific: "Pectoralis major",
+    titre: "Pectoraux",
+    nomScientifique: "Pectoralis major",
     description: "Muscles situés à l’avant du thorax.",
-    functions: [
+    fonctions: [
       "Adduction du bras",
       "Rotation interne",
       "Flexion de l’épaule",
     ],
-    exercises: [
+    exercices: [
       {
-        name: "Incline Dumbbell Press (Haut des pectoraux)",
+        nom: "Développé incliné avec haltères (haut des pectoraux)",
         image: require("../assets/images/exercices/incline_dumbbell_press.gif"),
       },
       {
-        name: "Push Up (Milieu des pectoraux)",
+        nom: "Pompes (milieu des pectoraux)",
         image: require("../assets/images/exercices/Push_Up.gif"),
       },
       {
-        name: "Flat Dumbbell Press (Milieu des pectoraux)",
+        nom: "Développé couché avec haltères (milieu des pectoraux)",
         image: require("../assets/images/exercices/flat_dumbbell_press.gif"),
       },
       {
-        name: "Peck Deck Chest Fly (Milieu des pectoraux)",
+        nom: "Écarté à la machine pec deck (milieu des pectoraux)",
         image: require("../assets/images/exercices/peckdeck_chest_fly.gif"),
       },
       {
-        name: "Cable Chest Fly (Bas des pectoraux)",
+        nom: "Écarté à la poulie (bas des pectoraux)",
         image: require("../assets/images/exercices/cable_chest_fly.gif"),
       },
     ],
-    rest: "48 à 72 h",
-    safety:
+    repos: "48 à 72 h",
+    securite:
       "Contrôler la charge, garder les épaules stables et éviter de trop cambrer le bas du dos.",
   },
 
   deltoids: {
-    title: "Épaules / Deltoïdes",
-    scientific: "Deltoideus",
+    titre: "Épaules / Deltoïdes",
+    nomScientifique: "Deltoideus",
     description: "Muscles principaux de l’épaule.",
-    functions: ["Abduction", "Flexion", "Extension de l’épaule"],
-    exercises: [
+    fonctions: ["Abduction", "Flexion", "Extension de l’épaule"],
+    exercices: [
       {
-        name: "Dumbbell Shoulder Press",
+        nom: "Développé épaules avec haltères",
         image: require("../assets/images/exercices/dumbbell_shoulder_press.jpg"),
       },
       {
-        name: "Machine Shoulder Press",
+        nom: "Développé épaules à la machine",
         image: require("../assets/images/exercices/machine_shoulder_press.jpg"),
       },
       {
-        name: "Dumbbell Lateral Raise",
+        nom: "Élévation latérale avec haltères",
         image: require("../assets/images/exercices/dumbbell_lateral_raise.gif"),
       },
       {
-        name: "Cable Lateral Raise",
+        nom: "Élévation latérale à la poulie",
         image: require("../assets/images/exercices/cable_lateral_raise.gif"),
       },
       {
-        name: "Pike Pushups",
+        nom: "Pompes en pointe",
         image: require("../assets/images/exercices/pike_pushups.gif"),
       },
       {
-        name: "Rear Delt Fly",
+        nom: "Écarté arrière pour deltoïdes",
         image: require("../assets/images/exercices/rear_delt_fly.gif"),
       },
     ],
-    rest: "48 h",
-    safety:
+    repos: "48 h",
+    securite:
       "Éviter l’élan, garder le mouvement contrôlé et ne pas hausser les épaules excessivement.",
   },
 
   biceps: {
-    title: "Biceps",
-    scientific: "Biceps brachii",
+    titre: "Biceps",
+    nomScientifique: "Biceps brachii",
     description: "Muscle situé à l’avant du bras.",
-    functions: ["Flexion du coude", "Supination"],
-    exercises: [
+    fonctions: ["Flexion du coude", "Supination"],
+    exercices: [
       {
-        name: "Dumbbell Curl",
+        nom: "Curl avec haltères",
         image: require("../assets/images/exercices/dumbbell_curl.gif"),
       },
       {
-        name: "Hammer Curls",
+        nom: "Curl marteau",
         image: require("../assets/images/exercices/hammer_curls.gif"),
       },
       {
-        name: "Preacher Curl",
+        nom: "Curl au pupitre",
         image: require("../assets/images/exercices/preacher_curl.gif"),
       },
     ],
-    rest: "48 h",
-    safety: "Ne pas balancer le tronc et garder les coudes stables.",
+    repos: "48 h",
+    securite: "Ne pas balancer le tronc et garder les coudes stables.",
   },
 
   triceps: {
-    title: "Triceps",
-    scientific: "Triceps brachii",
+    titre: "Triceps",
+    nomScientifique: "Triceps brachii",
     description: "Muscle situé à l’arrière du bras.",
-    functions: ["Extension du coude"],
-    exercises: [
+    fonctions: ["Extension du coude"],
+    exercices: [
       {
-        name: "Bench Dips",
+        nom: "Dips sur banc",
         image: require("../assets/images/exercices/bench_dips.jpg"),
       },
       {
-        name: "Over Head Tricep Extension",
+        nom: "Extension des triceps au-dessus de la tête",
         image: require("../assets/images/exercices/over-head_tricep_extension.jpg"),
       },
       {
-        name: "Tricep Extension",
+        nom: "Extension des triceps",
         image: require("../assets/images/exercices/tricep_extension.jpg"),
       },
       {
-        name: "Tricep Kickback",
+        nom: "Kickback pour triceps",
         image: require("../assets/images/exercices/tricep_kickback.gif"),
       },
       {
-        name: "Skull Crushers",
+        nom: "Skull crushers",
         image: require("../assets/images/exercices/skull_crushers.gif"),
       },
     ],
-    rest: "48 h",
-    safety: "Garder les coudes alignés et éviter les mouvements brusques.",
+    repos: "48 h",
+    securite: "Garder les coudes alignés et éviter les mouvements brusques.",
   },
 
   forearm: {
-    title: "Avant-bras",
-    scientific: "Musculi antebrachii",
+    titre: "Avant-bras",
+    nomScientifique: "Musculi antebrachii",
     description: "Groupe musculaire de l’avant-bras.",
-    functions: ["Prise", "Flexion/extension du poignet"],
-    exercises: [
+    fonctions: ["Prise", "Flexion/extension du poignet"],
+    exercices: [
       {
-        name: "Forearm Curl Bar",
+        nom: "Curl des avant-bras à la barre",
         image: require("../assets/images/exercices/forearm_curl_bar.webp"),
       },
       {
-        name: "Forearm Curl Dumbbell",
+        nom: "Curl des avant-bras avec haltère",
         image: require("../assets/images/exercices/forearm_curl_dumbbell.gif"),
       },
       {
-        name: "Reverse Curls",
+        nom: "Curl inversé",
         image: require("../assets/images/exercices/reverse_curls.gif"),
       },
       {
-        name: "Reverse Forearm Curl",
+        nom: "Curl inversé des avant-bras",
         image: require("../assets/images/exercices/reverse_forearm_curl.gif"),
       },
     ],
-    rest: "24 à 48 h",
-    safety: "Ne pas surcharger les poignets et garder un mouvement contrôlé.",
+    repos: "24 à 48 h",
+    securite: "Ne pas surcharger les poignets et garder un mouvement contrôlé.",
   },
 
   abs: {
-    title: "Abdos",
-    scientific: "Rectus abdominis",
+    titre: "Abdos",
+    nomScientifique: "Rectus abdominis",
     description: "Muscles de la paroi abdominale avant.",
-    functions: ["Flexion du tronc", "Stabilisation"],
-    exercises: [
+    fonctions: ["Flexion du tronc", "Stabilisation"],
+    exercices: [
       {
-        name: "Cable Crunch",
+        nom: "Crunch à la poulie",
         image: require("../assets/images/exercices/cable_crunch.gif"),
       },
       {
-        name: "Machine Crunch",
+        nom: "Crunch à la machine",
         image: require("../assets/images/exercices/machine_crunch.gif"),
       },
       {
-        name: "Leg Raise",
+        nom: "Relevé de jambes",
         image: require("../assets/images/exercices/leg_raise.gif"),
       },
       {
-        name: "Sit Ups",
+        nom: "Redressements assis",
         image: require("../assets/images/exercices/sit_ups.gif"),
       },
     ],
-    rest: "24 à 48 h",
-    safety: "Éviter de tirer sur le cou et garder le bas du dos sous contrôle.",
+    repos: "24 à 48 h",
+    securite: "Éviter de tirer sur le cou et garder le bas du dos sous contrôle.",
   },
 
   obliques: {
-    title: "Obliques",
-    scientific: "Obliquus externus et internus abdominis",
+    titre: "Obliques",
+    nomScientifique: "Obliquus externus et internus abdominis",
     description: "Muscles latéraux de l’abdomen.",
-    functions: ["Rotation du tronc", "Inclinaison latérale"],
-    exercises: [
+    fonctions: ["Rotation du tronc", "Inclinaison latérale"],
+    exercices: [
       {
-        name: "Oblique Crunch",
+        nom: "Crunch oblique",
         image: require("../assets/images/exercices/oblique_crunch.gif"),
       },
       {
-        name: "Oblique Side Bend",
+        nom: "Flexion latérale oblique",
         image: require("../assets/images/exercices/oblique_side_bend.gif"),
       },
     ],
-    rest: "24 à 48 h",
-    safety: "Contrôler les rotations et éviter l’élan.",
+    repos: "24 à 48 h",
+    securite: "Contrôler les rotations et éviter l’élan.",
   },
 
   quadriceps: {
-    title: "Quadriceps",
-    scientific: "Quadriceps femoris",
+    titre: "Quadriceps",
+    nomScientifique: "Quadriceps femoris",
     description: "Muscles situés à l’avant de la cuisse.",
-    functions: ["Extension du genou", "Stabilisation de la jambe"],
-    exercises: [
+    fonctions: ["Extension du genou", "Stabilisation de la jambe"],
+    exercices: [
       {
-        name: "Leg Extension",
+        nom: "Extension des jambes",
         image: require("../assets/images/exercices/leg_extension.gif"),
       },
       {
-        name: "Dumbbell Bulgarian Split Squat",
+        nom: "Squat bulgare avec haltères",
         image: require("../assets/images/exercices/dumbbell_bulgarian_split_squat.gif"),
       },
       {
-        name: "Leg Press",
+        nom: "Presse à jambes",
         image: require("../assets/images/exercices/leg_press.gif"),
       },
     ],
-    rest: "48 à 72 h",
-    safety:
+    repos: "48 à 72 h",
+    securite:
       "Garder les genoux alignés avec les pieds et contrôler la descente.",
   },
 
   calves: {
-    title: "Mollets",
-    scientific: "Gastrocnemius et soleus",
+    titre: "Mollets",
+    nomScientifique: "Gastrocnemius et soleus",
     description: "Muscles de la jambe responsables de la flexion plantaire.",
-    functions: ["Flexion plantaire", "Stabilité à la marche et à la course"],
-    exercises: [
+    fonctions: ["Flexion plantaire", "Stabilité à la marche et à la course"],
+    exercices: [
       {
-        name: "Calf Raises",
+        nom: "Élévations des mollets",
         image: require("../assets/images/exercices/calf_raises.gif"),
       },
       {
-        name: "Seated Calf Raises",
+        nom: "Élévations assises des mollets",
         image: require("../assets/images/exercices/seated_calf_raises.gif"),
       },
     ],
-    rest: "24 à 48 h",
-    safety: "Faire une amplitude complète sans rebond brusque.",
+    repos: "24 à 48 h",
+    securite: "Faire une amplitude complète sans rebond brusque.",
   },
 
   "upper-back": {
-    title: "Haut du dos",
-    scientific: "Trapezius / upper back / latissimus dorsi",
+    titre: "Haut du dos",
+    nomScientifique: "Trapezius / upper back / latissimus dorsi",
     description:
       "Région supérieure du dos, impliquée dans la stabilité scapulaire et le tirage.",
-    functions: ["Rétraction scapulaire", "Adduction", "Stabilité du haut du dos"],
-    exercises: [
+    fonctions: ["Rétraction scapulaire", "Adduction", "Stabilité du haut du dos"],
+    exercices: [
       {
-        name: "Cable Row",
+        nom: "Rowing à la poulie",
         image: require("../assets/images/exercices/cable_row.gif"),
       },
       {
-        name: "Dumbbell Row",
+        nom: "Rowing avec haltère",
         image: require("../assets/images/exercices/dumbbell_row.jpg"),
       },
       {
-        name: "Laying Dumbbell Row",
+        nom: "Rowing couché avec haltères",
         image: require("../assets/images/exercices/laying_dumbbell_row.gif"),
       },
       {
-        name: "Lat Pulldown",
+        nom: "Tirage vertical",
         image: require("../assets/images/exercices/lat_pulldown.jpg"),
       },
       {
-        name: "Pull Up",
+        nom: "Traction",
         image: require("../assets/images/exercices/pull_up.gif"),
       },
       {
-        name: "T-Bar Row",
+        nom: "Rowing T-Bar",
         image: require("../assets/images/exercices/t-bar_row.gif"),
       },
     ],
-    rest: "48 à 72 h",
-    safety: "Garder la colonne neutre et éviter de tirer avec le bas du dos.",
+    repos: "48 à 72 h",
+    securite: "Garder la colonne neutre et éviter de tirer avec le bas du dos.",
   },
 
   "lower-back": {
-    title: "Bas du dos",
-    scientific: "Erector spinae / lower back",
+    titre: "Bas du dos",
+    nomScientifique: "Erector spinae / lower back",
     description: "Région lombaire et muscles érecteurs de la colonne.",
-    functions: ["Extension du tronc", "Stabilisation lombaire"],
-    exercises: [
+    fonctions: ["Extension du tronc", "Stabilisation lombaire"],
+    exercices: [
       {
-        name: "Dumbbell Romanian Deadlift",
+        nom: "Soulevé de terre roumain avec haltères",
         image: require("../assets/images/exercices/dumbbell_rdl.gif"),
       },
       {
-        name: "Stiff Leg Deadlift",
+        nom: "Soulevé de terre jambes tendues",
         image: require("../assets/images/exercices/sldl.gif"),
       },
     ],
-    rest: "48 à 72 h",
-    safety:
+    repos: "48 à 72 h",
+    securite:
       "Protéger le bas du dos, garder la colonne neutre et éviter l’hyperextension.",
   },
 
   hamstring: {
-    title: "Ischio-jambiers",
-    scientific: "Hamstrings",
+    titre: "Ischio-jambiers",
+    nomScientifique: "Hamstrings",
     description: "Muscles situés à l’arrière de la cuisse.",
-    functions: ["Flexion du genou", "Extension de hanche"],
-    exercises: [
+    fonctions: ["Flexion du genou", "Extension de hanche"],
+    exercices: [
       {
-        name: "Laying Leg Curls",
+        nom: "Leg curl couché",
         image: require("../assets/images/exercices/laying_leg_curls.gif"),
       },
       {
-        name: "Seated Leg Curls",
+        nom: "Leg curl assis",
         image: require("../assets/images/exercices/seated_leg_curls.gif"),
       },
       {
-        name: "Leg Press",
+        nom: "Presse à jambes",
         image: require("../assets/images/exercices/leg_press.gif"),
       },
       {
-        name: "Dumbbell Romanian Deadlift",
+        nom: "Soulevé de terre roumain avec haltères",
         image: require("../assets/images/exercices/dumbbell_rdl.gif"),
       },
       {
-        name: "Stiff Leg Deadlift",
+        nom: "Soulevé de terre jambes tendues",
         image: require("../assets/images/exercices/sldl.gif"),
       },
     ],
-    rest: "48 à 72 h",
-    safety: "Contrôler la descente et éviter les mouvements brusques.",
+    repos: "48 à 72 h",
+    securite: "Contrôler la descente et éviter les mouvements brusques.",
   },
 
   gluteal: {
-    title: "Fessiers",
-    scientific: "Gluteus maximus / medius",
+    titre: "Fessiers",
+    nomScientifique: "Gluteus maximus / medius",
     description: "Muscles de la région glutéale.",
-    functions: [
+    fonctions: [
       "Extension de hanche",
       "Stabilisation du bassin",
       "Abduction de hanche",
     ],
-    exercises: [
+    exercices: [
       {
-        name: "Hip Thrust",
+        nom: "Hip thrust",
         image: require("../assets/images/exercices/hip_thrust.gif"),
       },
       {
-        name: "Cable Kick Back",
+        nom: "Kickback à la poulie",
         image: require("../assets/images/exercices/cable_kick_back.gif"),
       },
       {
-        name: "Abductors",
+        nom: "Machine abducteurs",
         image: require("../assets/images/exercices/abductors.gif"),
       },
       {
-        name: "Dumbbell Bulgarian Split Squat",
+        nom: "Squat bulgare avec haltères",
         image: require("../assets/images/exercices/dumbbell_bulgarian_split_squat.gif"),
       },
     ],
-    rest: "48 à 72 h",
-    safety:
+    repos: "48 à 72 h",
+    securite:
       "Garder le bassin stable et éviter de cambrer excessivement le bas du dos.",
   },
 
   adductors: {
-    title: "Adducteurs / Inner Thighs",
-    scientific: "Adductor longus, brevis, magnus",
+    titre: "Adducteurs / intérieur des cuisses",
+    nomScientifique: "Adductor longus, brevis, magnus",
     description:
       "Muscles situés à l’intérieur des cuisses, visibles à l’avant et importants pour la stabilité des jambes.",
-    functions: [
+    fonctions: [
       "Adduction de la hanche",
       "Stabilisation du bassin",
       "Contrôle des jambes",
     ],
-    exercises: [
+    exercices: [
       {
-        name: "Adductors",
+        nom: "Machine adducteurs",
         image: require("../assets/images/exercices/adductors.gif"),
       },
     ],
-    rest: "48 h",
-    safety:
+    repos: "48 h",
+    securite:
       "Garder un mouvement contrôlé et éviter de fermer les jambes brusquement.",
   },
 
   trapezius: {
-    title: "Trapèzes",
-    scientific: "Trapezius",
+    titre: "Trapèzes",
+    nomScientifique: "Trapezius",
     description:
       "Muscles du haut du dos et du cou, responsables de la stabilité et du mouvement des épaules.",
-    functions: [
+    fonctions: [
       "Élévation des épaules",
       "Stabilité scapulaire",
       "Rétraction scapulaire",
     ],
-    exercises: [
+    exercices: [
       {
-        name: "Shrugs",
+        nom: "Haussements d’épaules",
         image: require("../assets/images/exercices/shrugs.gif"),
       },
     ],
-    rest: "48 h",
-    safety:
+    repos: "48 h",
+    securite:
       "Éviter de rouler les épaules et contrôler la montée/descente.",
   },
 
   traps: {
-    title: "Trapèzes",
-    scientific: "Trapezius",
+    titre: "Trapèzes",
+    nomScientifique: "Trapezius",
     description:
       "Muscles du haut du dos et du cou, responsables de la stabilité et du mouvement des épaules.",
-    functions: [
+    fonctions: [
       "Élévation des épaules",
       "Stabilité scapulaire",
       "Rétraction scapulaire",
     ],
-    exercises: [
+    exercices: [
       {
-        name: "Shrugs",
+        nom: "Haussements d’épaules",
         image: require("../assets/images/exercices/shrugs.gif"),
       },
     ],
-    rest: "48 h",
-    safety:
+    repos: "48 h",
+    securite:
       "Éviter de rouler les épaules et contrôler la montée/descente.",
   },
 };
 
-function normalizeSlug(slug: string): string {
+// Cette fonction corrige certains slugs retournés par la librairie.
+// Par exemple, si la librairie retourne "traps", on redirige vers "trapezius".
+function normaliserSlug(slug: string): string {
   if (slug === "traps") return "trapezius";
   return slug;
 }
 
-function createEmptyWorkoutExercise(): WorkoutExercise {
+// Cette fonction crée un exercice vide à afficher dans le formulaire.
+// Un identifiant unique est généré pour pouvoir modifier ou supprimer la bonne ligne.
+function creerExerciceProgrammeVide(): ExerciceProgramme {
   return {
     id: `${Date.now()}-${Math.random()}`,
-    name: "",
-    sets: "",
-    reps: "",
-    weight: "",
+    nom: "",
+    series: "",
+    repetitions: "",
+    poids: "",
   };
 }
 
-export default function MusculationScreen() {
-  const [viewSide, setViewSide] = useState<SideView>("front");
-  const [selectedPart, setSelectedPart] = useState<ExtendedBodyPart | null>(null);
+export default function EcranMusculation() {
+  // Gère la vue du corps actuellement affichée : avant ou arrière.
+  const [vueCorps, setVueCorps] = useState<VueCorps>("front");
 
-  const [sheetVisible, setSheetVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState<SheetTab>("infos");
+  // Stocke la partie du corps présentement sélectionnée par l'utilisateur.
+  const [partieSelectionnee, setPartieSelectionnee] =
+    useState<ExtendedBodyPart | null>(null);
 
-  const [workoutModalVisible, setWorkoutModalVisible] = useState(false);
-  const [workoutTab, setWorkoutTab] = useState<WorkoutTab>("create");
-  const [workoutTitle, setWorkoutTitle] = useState("");
-  const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([
-    createEmptyWorkoutExercise(),
+  // Contrôle l'affichage de la fiche d'information du muscle.
+  const [ficheVisible, setFicheVisible] = useState(false);
+
+  // Détermine l'onglet actif de la fiche du muscle.
+  const [ongletFicheActif, setOngletFicheActif] = useState<OngletFiche>("infos");
+
+  // Contrôle l'affichage de la feuille modale du générateur de programmes.
+  const [generateurVisible, setGenerateurVisible] = useState(false);
+
+  // Détermine si l'utilisateur est dans l'onglet créer ou sauvegardes.
+  const [ongletProgrammeActif, setOngletProgrammeActif] =
+    useState<OngletProgramme>("creer");
+
+  // Stocke le titre du programme actuellement en cours de création.
+  const [titreProgramme, setTitreProgramme] = useState("");
+
+  // Stocke les exercices du programme en cours de création.
+  const [exercicesProgramme, setExercicesProgramme] = useState<ExerciceProgramme[]>([
+    creerExerciceProgrammeVide(),
   ]);
-  const [savedWorkouts, setSavedWorkouts] = useState<SavedWorkout[]>([]);
-  const [selectedSavedWorkout, setSelectedSavedWorkout] =
-    useState<SavedWorkout | null>(null);
 
-  const hasLoadedWorkouts = useRef(false);
+  // Contient tous les programmes sauvegardés localement.
+  const [programmesSauvegardes, setProgrammesSauvegardes] = useState<
+    ProgrammeSauvegarde[]
+  >([]);
 
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  // Représente le programme sélectionné dans la liste des sauvegardes.
+  const [programmeSauvegardeSelectionne, setProgrammeSauvegardeSelectionne] =
+    useState<ProgrammeSauvegarde | null>(null);
 
-  const workoutTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const workoutBackdropOpacity = useRef(new Animated.Value(0)).current;
+  // Indique si le chargement initial des programmes a déjà été effectué.
+  const aChargeLesProgrammes = useRef(false);
 
-  const selectedSlug = selectedPart?.slug ? normalizeSlug(selectedPart.slug) : null;
-  const selectedInfo = selectedSlug
-    ? MUSCLE_INFO[selectedSlug as keyof typeof MUSCLE_INFO]
+  // Valeurs animées utilisées pour la fiche d'information du muscle.
+  const translationYFiche = useRef(new Animated.Value(HAUTEUR_ECRAN)).current;
+  const opaciteFondFiche = useRef(new Animated.Value(0)).current;
+
+  // Valeurs animées utilisées pour la feuille du générateur de programmes.
+  const translationYGenerateur = useRef(new Animated.Value(HAUTEUR_ECRAN)).current;
+  const opaciteFondGenerateur = useRef(new Animated.Value(0)).current;
+
+  // Calcule le slug du muscle sélectionné en le normalisant au besoin.
+  const slugSelectionne = partieSelectionnee?.slug
+    ? normaliserSlug(partieSelectionnee.slug)
     : null;
 
-  const highlightedData = useMemo(() => {
+  // Récupère les informations du muscle actuellement sélectionné.
+  const infoSelectionnee = slugSelectionne
+    ? INFOS_MUSCLES[slugSelectionne as keyof typeof INFOS_MUSCLES]
+    : null;
+
+  // Prépare la liste des zones à surligner sur le corps interactif.
+  // Ici, on ne surligne que le muscle actuellement sélectionné.
+  const donneesSurlignees = useMemo(() => {
     const base: ExtendedBodyPart[] = [];
-    if (selectedPart) {
-      base.push(selectedPart);
+    if (partieSelectionnee) {
+      base.push(partieSelectionnee);
     }
     return base;
-  }, [selectedPart]);
+  }, [partieSelectionnee]);
 
+  // Charge les programmes sauvegardés au démarrage de l'écran.
   useEffect(() => {
-    const loadSavedWorkouts = async () => {
+    const chargerProgrammesSauvegardes = async () => {
       try {
-        const stored = await AsyncStorage.getItem(WORKOUTS_STORAGE_KEY);
-        if (stored) {
-          const parsed: SavedWorkout[] = JSON.parse(stored);
-          setSavedWorkouts(parsed);
-          if (parsed.length > 0) {
-            setSelectedSavedWorkout(parsed[0]);
+        const stockage = await AsyncStorage.getItem(CLE_STOCKAGE_PROGRAMMES);
+        if (stockage) {
+          const programmesParses: ProgrammeSauvegarde[] = JSON.parse(stockage);
+          setProgrammesSauvegardes(programmesParses);
+          if (programmesParses.length > 0) {
+            setProgrammeSauvegardeSelectionne(programmesParses[0]);
           }
         }
-      } catch (error) {
-        console.log("Erreur chargement workouts:", error);
+      } catch (erreur) {
+        console.log("Erreur chargement programmes :", erreur);
       } finally {
-        hasLoadedWorkouts.current = true;
+        aChargeLesProgrammes.current = true;
       }
     };
 
-    loadSavedWorkouts();
+    chargerProgrammesSauvegardes();
   }, []);
 
+  // Sauvegarde les programmes automatiquement dès que la liste change.
+  // On attend que le chargement initial soit terminé pour éviter d'écraser les données.
   useEffect(() => {
-    const persistWorkouts = async () => {
-      if (!hasLoadedWorkouts.current) return;
+    const sauvegarderProgrammes = async () => {
+      if (!aChargeLesProgrammes.current) return;
       try {
         await AsyncStorage.setItem(
-          WORKOUTS_STORAGE_KEY,
-          JSON.stringify(savedWorkouts)
+          CLE_STOCKAGE_PROGRAMMES,
+          JSON.stringify(programmesSauvegardes)
         );
-      } catch (error) {
-        console.log("Erreur sauvegarde workouts:", error);
+      } catch (erreur) {
+        console.log("Erreur sauvegarde programmes :", erreur);
       }
     };
 
-    persistWorkouts();
-  }, [savedWorkouts]);
+    sauvegarderProgrammes();
+  }, [programmesSauvegardes]);
 
-  const openSheet = (part: ExtendedBodyPart) => {
-    setSelectedPart(part);
-    setActiveTab("infos");
-    setSheetVisible(true);
+  // Ouvre la fiche d'un muscle en lançant les animations nécessaires.
+  const ouvrirFicheMuscle = (partie: ExtendedBodyPart) => {
+    setPartieSelectionnee(partie);
+    setOngletFicheActif("infos");
+    setFicheVisible(true);
 
-    backdropOpacity.setValue(0);
-    sheetTranslateY.setValue(SCREEN_HEIGHT);
+    opaciteFondFiche.setValue(0);
+    translationYFiche.setValue(HAUTEUR_ECRAN);
 
     Animated.parallel([
-      Animated.timing(backdropOpacity, {
+      Animated.timing(opaciteFondFiche, {
         toValue: 1,
         duration: 220,
         useNativeDriver: true,
       }),
-      Animated.spring(sheetTranslateY, {
+      Animated.spring(translationYFiche, {
         toValue: 0,
         friction: 9,
         tension: 70,
@@ -594,35 +649,37 @@ export default function MusculationScreen() {
     ]).start();
   };
 
-  const closeSheet = () => {
+  // Ferme la fiche du muscle avec une animation vers le bas.
+  const fermerFicheMuscle = () => {
     Animated.parallel([
-      Animated.timing(backdropOpacity, {
+      Animated.timing(opaciteFondFiche, {
         toValue: 0,
         duration: 180,
         useNativeDriver: true,
       }),
-      Animated.timing(sheetTranslateY, {
-        toValue: SCREEN_HEIGHT,
+      Animated.timing(translationYFiche, {
+        toValue: HAUTEUR_ECRAN,
         duration: 220,
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setSheetVisible(false);
+      setFicheVisible(false);
     });
   };
 
-  const openWorkoutModal = () => {
-    setWorkoutModalVisible(true);
-    workoutBackdropOpacity.setValue(0);
-    workoutTranslateY.setValue(SCREEN_HEIGHT);
+  // Ouvre la feuille modale du générateur de programmes.
+  const ouvrirGenerateurProgrammes = () => {
+    setGenerateurVisible(true);
+    opaciteFondGenerateur.setValue(0);
+    translationYGenerateur.setValue(HAUTEUR_ECRAN);
 
     Animated.parallel([
-      Animated.timing(workoutBackdropOpacity, {
+      Animated.timing(opaciteFondGenerateur, {
         toValue: 1,
         duration: 220,
         useNativeDriver: true,
       }),
-      Animated.spring(workoutTranslateY, {
+      Animated.spring(translationYGenerateur, {
         toValue: 0,
         friction: 9,
         tension: 70,
@@ -631,91 +688,105 @@ export default function MusculationScreen() {
     ]).start();
   };
 
-  const closeWorkoutModal = () => {
+  // Ferme la feuille modale du générateur de programmes.
+  const fermerGenerateurProgrammes = () => {
     Animated.parallel([
-      Animated.timing(workoutBackdropOpacity, {
+      Animated.timing(opaciteFondGenerateur, {
         toValue: 0,
         duration: 180,
         useNativeDriver: true,
       }),
-      Animated.timing(workoutTranslateY, {
-        toValue: SCREEN_HEIGHT,
+      Animated.timing(translationYGenerateur, {
+        toValue: HAUTEUR_ECRAN,
         duration: 220,
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setWorkoutModalVisible(false);
+      setGenerateurVisible(false);
     });
   };
 
-  const addWorkoutExercise = () => {
-    setWorkoutExercises((prev) => [...prev, createEmptyWorkoutExercise()]);
+  // Ajoute une nouvelle ligne vide d'exercice dans le formulaire.
+  const ajouterExerciceProgramme = () => {
+    setExercicesProgramme((precedent) => [
+      ...precedent,
+      creerExerciceProgrammeVide(),
+    ]);
   };
 
-  const removeWorkoutExercise = (id: string) => {
-    setWorkoutExercises((prev) => {
-      const filtered = prev.filter((item) => item.id !== id);
-      return filtered.length > 0 ? filtered : [createEmptyWorkoutExercise()];
+  // Supprime un exercice du formulaire selon son identifiant.
+  // Si tous les exercices sont supprimés, on recrée une ligne vide.
+  const supprimerExerciceProgramme = (id: string) => {
+    setExercicesProgramme((precedent) => {
+      const filtres = precedent.filter((element) => element.id !== id);
+      return filtres.length > 0 ? filtres : [creerExerciceProgrammeVide()];
     });
   };
 
-  const updateWorkoutExercise = (
+  // Met à jour une propriété précise d'un exercice du programme.
+  const mettreAJourExerciceProgramme = (
     id: string,
-    field: keyof Omit<WorkoutExercise, "id">,
-    value: string
+    champ: keyof Omit<ExerciceProgramme, "id">,
+    valeur: string
   ) => {
-    setWorkoutExercises((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
+    setExercicesProgramme((precedent) =>
+      precedent.map((element) =>
+        element.id === id ? { ...element, [champ]: valeur } : element
       )
     );
   };
 
-  const saveWorkout = () => {
-    const cleanedTitle = workoutTitle.trim();
-    const cleanedExercises = workoutExercises.filter(
-      (item) =>
-        item.name.trim() !== "" ||
-        item.sets.trim() !== "" ||
-        item.reps.trim() !== "" ||
-        item.weight.trim() !== ""
+  // Sauvegarde un nouveau programme si le titre et au moins un exercice sont remplis.
+  // Après la sauvegarde, le formulaire est réinitialisé et l'onglet bascule vers les sauvegardes.
+  const sauvegarderProgramme = () => {
+    const titreNettoye = titreProgramme.trim();
+    const exercicesNettoyes = exercicesProgramme.filter(
+      (element) =>
+        element.nom.trim() !== "" ||
+        element.series.trim() !== "" ||
+        element.repetitions.trim() !== "" ||
+        element.poids.trim() !== ""
     );
 
-    if (!cleanedTitle || cleanedExercises.length === 0) {
+    if (!titreNettoye || exercicesNettoyes.length === 0) {
       return;
     }
 
-    const newWorkout: SavedWorkout = {
+    const nouveauProgramme: ProgrammeSauvegarde = {
       id: `${Date.now()}-${Math.random()}`,
-      title: cleanedTitle,
-      exercises: cleanedExercises,
+      titre: titreNettoye,
+      exercices: exercicesNettoyes,
     };
 
-    setSavedWorkouts((prev) => [newWorkout, ...prev]);
-    setSelectedSavedWorkout(newWorkout);
-    setWorkoutTab("saved");
-    setWorkoutTitle("");
-    setWorkoutExercises([createEmptyWorkoutExercise()]);
+    setProgrammesSauvegardes((precedent) => [nouveauProgramme, ...precedent]);
+    setProgrammeSauvegardeSelectionne(nouveauProgramme);
+    setOngletProgrammeActif("sauvegardes");
+    setTitreProgramme("");
+    setExercicesProgramme([creerExerciceProgrammeVide()]);
   };
 
-  const deleteSavedWorkout = (workoutId: string) => {
-    setSavedWorkouts((prev) => {
-      const updated = prev.filter((item) => item.id !== workoutId);
+  // Supprime un programme sauvegardé et met à jour le programme sélectionné si nécessaire.
+  const supprimerProgrammeSauvegarde = (idProgramme: string) => {
+    setProgrammesSauvegardes((precedent) => {
+      const misAJour = precedent.filter((element) => element.id !== idProgramme);
 
-      if (selectedSavedWorkout?.id === workoutId) {
-        setSelectedSavedWorkout(updated.length > 0 ? updated[0] : null);
+      if (programmeSauvegardeSelectionne?.id === idProgramme) {
+        setProgrammeSauvegardeSelectionne(
+          misAJour.length > 0 ? misAJour[0] : null
+        );
       }
 
-      return updated;
+      return misAJour;
     });
   };
 
-  const renderRightDeleteAction = (
-    progress: Animated.AnimatedInterpolation<number>,
-    dragX: Animated.AnimatedInterpolation<number>,
-    workoutId: string
+  // Affiche l'action de suppression à droite lors du swipe sur un programme sauvegardé.
+  const rendreActionSupprimerDroite = (
+    progression: Animated.AnimatedInterpolation<number>,
+    deplacementX: Animated.AnimatedInterpolation<number>,
+    idProgramme: string
   ) => {
-    const translateX = dragX.interpolate({
+    const translationX = deplacementX.interpolate({
       inputRange: [-120, 0],
       outputRange: [0, 40],
       extrapolate: "clamp",
@@ -724,18 +795,18 @@ export default function MusculationScreen() {
     return (
       <Animated.View
         style={[
-          styles.deleteAction,
+          styles.actionSupprimer,
           {
-            transform: [{ translateX }],
+            transform: [{ translateX: translationX }],
           },
         ]}
       >
         <Pressable
-          style={styles.deleteActionPressable}
-          onPress={() => deleteSavedWorkout(workoutId)}
+          style={styles.boutonActionSupprimer}
+          onPress={() => supprimerProgrammeSauvegarde(idProgramme)}
         >
           <Ionicons name="trash-outline" size={22} color="white" />
-          <Text style={styles.deleteActionText}>Delete</Text>
+          <Text style={styles.texteActionSupprimer}>Supprimer</Text>
         </Pressable>
       </Animated.View>
     );
@@ -743,22 +814,22 @@ export default function MusculationScreen() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.screen}>
-        <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>Musculation</Text>
+      <View style={styles.ecran}>
+        <ScrollView contentContainerStyle={styles.conteneur}>
+          <Text style={styles.titre}>Musculation</Text>
 
-          <View style={styles.switchRow}>
+          <View style={styles.rangeeInterrupteur}>
             <Pressable
               style={[
-                styles.switchBtn,
-                viewSide === "front" && styles.switchBtnActive,
+                styles.boutonInterrupteur,
+                vueCorps === "front" && styles.boutonInterrupteurActif,
               ]}
-              onPress={() => setViewSide("front")}
+              onPress={() => setVueCorps("front")}
             >
               <Text
                 style={[
-                  styles.switchText,
-                  viewSide === "front" && styles.switchTextActive,
+                  styles.texteInterrupteur,
+                  vueCorps === "front" && styles.texteInterrupteurActif,
                 ]}
               >
                 Vue avant
@@ -767,15 +838,15 @@ export default function MusculationScreen() {
 
             <Pressable
               style={[
-                styles.switchBtn,
-                viewSide === "back" && styles.switchBtnActive,
+                styles.boutonInterrupteur,
+                vueCorps === "back" && styles.boutonInterrupteurActif,
               ]}
-              onPress={() => setViewSide("back")}
+              onPress={() => setVueCorps("back")}
             >
               <Text
                 style={[
-                  styles.switchText,
-                  viewSide === "back" && styles.switchTextActive,
+                  styles.texteInterrupteur,
+                  vueCorps === "back" && styles.texteInterrupteurActif,
                 ]}
               >
                 Vue arrière
@@ -783,25 +854,30 @@ export default function MusculationScreen() {
             </Pressable>
           </View>
 
-          <View style={styles.generatorButtonRow}>
-            <Pressable style={styles.generatorBtn} onPress={openWorkoutModal}>
+          <View style={styles.rangeeBoutonGenerateur}>
+            <Pressable
+              style={styles.boutonGenerateur}
+              onPress={ouvrirGenerateurProgrammes}
+            >
               <Ionicons name="barbell-outline" size={20} color="white" />
-              <Text style={styles.generatorBtnText}>Workout Generator</Text>
+              <Text style={styles.texteBoutonGenerateur}>
+                Générateur de programmes
+              </Text>
             </Pressable>
           </View>
 
-          <View style={styles.bodyCard}>
+          <View style={styles.carteCorps}>
             <Body
-              data={highlightedData}
-              onBodyPartPress={(bodyPart, side) => {
-                openSheet({
-                  slug: bodyPart.slug,
+              data={donneesSurlignees}
+              onBodyPartPress={(partieDuCorps, cote) => {
+                ouvrirFicheMuscle({
+                  slug: partieDuCorps.slug,
                   intensity: 2,
-                  side,
+                  side: cote,
                 });
               }}
               gender="male"
-              side={viewSide}
+              side={vueCorps}
               scale={1.72}
               border="#2f2f2f"
               defaultFill="#efb6d4"
@@ -811,126 +887,137 @@ export default function MusculationScreen() {
           </View>
         </ScrollView>
 
-        <Modal visible={sheetVisible} transparent animationType="none">
-          <View style={styles.modalRoot}>
+        {/* Modal de la fiche d'information du muscle sélectionné. */}
+        <Modal visible={ficheVisible} transparent animationType="none">
+          <View style={styles.racineModal}>
             <Animated.View
               style={[
-                styles.backdrop,
+                styles.fondAssombri,
                 {
-                  opacity: backdropOpacity,
+                  opacity: opaciteFondFiche,
                 },
               ]}
             >
-              <Pressable style={StyleSheet.absoluteFill} onPress={closeSheet} />
+              <Pressable
+                style={StyleSheet.absoluteFill}
+                onPress={fermerFicheMuscle}
+              />
             </Animated.View>
 
             <Animated.View
               style={[
-                styles.sheet,
+                styles.fiche,
                 {
-                  transform: [{ translateY: sheetTranslateY }],
+                  transform: [{ translateY: translationYFiche }],
                 },
               ]}
             >
-              <View style={styles.handle} />
+              <View style={styles.poignee} />
 
-              <View style={styles.sheetHeader}>
+              <View style={styles.enteteFiche}>
                 <View>
-                  <Text style={styles.sheetTitle}>
-                    {selectedInfo?.title ?? "Muscle"}
+                  <Text style={styles.titreFiche}>
+                    {infoSelectionnee?.titre ?? "Muscle"}
                   </Text>
-                  <Text style={styles.sheetSubtitle}>
-                    {selectedInfo?.scientific ?? ""}
+                  <Text style={styles.sousTitreFiche}>
+                    {infoSelectionnee?.nomScientifique ?? ""}
                   </Text>
                 </View>
 
-                <Pressable style={styles.closeBtn} onPress={closeSheet}>
-                  <Text style={styles.closeBtnText}>Fermer</Text>
+                <Pressable
+                  style={styles.boutonFermer}
+                  onPress={fermerFicheMuscle}
+                >
+                  <Text style={styles.texteBoutonFermer}>Fermer</Text>
                 </Pressable>
               </View>
 
               <ScrollView
-                contentContainerStyle={styles.sheetContent}
+                contentContainerStyle={styles.contenuFiche}
                 showsVerticalScrollIndicator={false}
               >
-                {activeTab === "infos" ? (
-                  selectedInfo ? (
+                {ongletFicheActif === "infos" ? (
+                  infoSelectionnee ? (
                     <>
-                      <View style={styles.infoBlock}>
-                        <Text style={styles.blockTitle}>Description</Text>
-                        <Text style={styles.blockText}>
-                          {selectedInfo.description}
+                      <View style={styles.blocInfo}>
+                        <Text style={styles.titreBloc}>Description</Text>
+                        <Text style={styles.texteBloc}>
+                          {infoSelectionnee.description}
                         </Text>
                       </View>
 
-                      <View style={styles.infoBlock}>
-                        <Text style={styles.blockTitle}>Fonctions</Text>
-                        {selectedInfo.functions.map((fn, index) => (
-                          <Text key={`${fn}-${index}`} style={styles.bulletText}>
-                            • {fn}
+                      <View style={styles.blocInfo}>
+                        <Text style={styles.titreBloc}>Fonctions</Text>
+                        {infoSelectionnee.fonctions.map((fonction, index) => (
+                          <Text
+                            key={`${fonction}-${index}`}
+                            style={styles.textePuce}
+                          >
+                            • {fonction}
                           </Text>
                         ))}
                       </View>
 
-                      <View style={styles.rowCards}>
-                        <View style={styles.smallInfoCard}>
-                          <Text style={styles.smallInfoLabel}>Repos</Text>
-                          <Text style={styles.smallInfoValue}>
-                            {selectedInfo.rest}
+                      <View style={styles.rangeeCartes}>
+                        <View style={styles.petiteCarteInfo}>
+                          <Text style={styles.libellePetiteCarte}>Repos</Text>
+                          <Text style={styles.valeurPetiteCarte}>
+                            {infoSelectionnee.repos}
                           </Text>
                         </View>
 
-                        <View style={styles.smallInfoCard}>
-                          <Text style={styles.smallInfoLabel}>Sécurité</Text>
-                          <Text style={styles.smallInfoValue}>
-                            {selectedInfo.safety}
+                        <View style={styles.petiteCarteInfo}>
+                          <Text style={styles.libellePetiteCarte}>Sécurité</Text>
+                          <Text style={styles.valeurPetiteCarte}>
+                            {infoSelectionnee.securite}
                           </Text>
                         </View>
                       </View>
                     </>
                   ) : (
-                    <Text style={styles.emptyText}>Aucune information.</Text>
+                    <Text style={styles.texteVide}>Aucune information.</Text>
                   )
-                ) : selectedInfo ? (
-                  selectedInfo.exercises.length > 0 ? (
-                    <View style={styles.exerciseGrid}>
-                      {selectedInfo.exercises.map((exercise, index) => (
+                ) : infoSelectionnee ? (
+                  infoSelectionnee.exercices.length > 0 ? (
+                    <View style={styles.grilleExercices}>
+                      {infoSelectionnee.exercices.map((exercice, index) => (
                         <View
-                          key={`${exercise.name}-${index}`}
-                          style={styles.exerciseCard}
+                          key={`${exercice.nom}-${index}`}
+                          style={styles.carteExercice}
                         >
-                          {exercise.image ? (
+                          {exercice.image ? (
                             <Image
-                              source={exercise.image}
-                              style={styles.exerciseImage}
+                              source={exercice.image}
+                              style={styles.imageExercice}
                             />
                           ) : null}
-                          <Text style={styles.exerciseName}>{exercise.name}</Text>
+                          <Text style={styles.nomExercice}>{exercice.nom}</Text>
                         </View>
                       ))}
                     </View>
                   ) : (
-                    <Text style={styles.emptyText}>
+                    <Text style={styles.texteVide}>
                       Aucun visuel ajouté pour le moment.
                     </Text>
                   )
                 ) : (
-                  <Text style={styles.emptyText}>Aucun exercice disponible.</Text>
+                  <Text style={styles.texteVide}>Aucun exercice disponible.</Text>
                 )}
               </ScrollView>
 
-              <View style={styles.bottomTabs}>
+              <View style={styles.ongletsBas}>
                 <Pressable
                   style={[
-                    styles.bottomTabBtn,
-                    activeTab === "infos" && styles.bottomTabBtnActive,
+                    styles.boutonOngletBas,
+                    ongletFicheActif === "infos" && styles.boutonOngletBasActif,
                   ]}
-                  onPress={() => setActiveTab("infos")}
+                  onPress={() => setOngletFicheActif("infos")}
                 >
                   <Text
                     style={[
-                      styles.bottomTabText,
-                      activeTab === "infos" && styles.bottomTabTextActive,
+                      styles.texteOngletBas,
+                      ongletFicheActif === "infos" &&
+                        styles.texteOngletBasActif,
                     ]}
                   >
                     Infos
@@ -939,15 +1026,17 @@ export default function MusculationScreen() {
 
                 <Pressable
                   style={[
-                    styles.bottomTabBtn,
-                    activeTab === "exercices" && styles.bottomTabBtnActive,
+                    styles.boutonOngletBas,
+                    ongletFicheActif === "exercices" &&
+                      styles.boutonOngletBasActif,
                   ]}
-                  onPress={() => setActiveTab("exercices")}
+                  onPress={() => setOngletFicheActif("exercices")}
                 >
                   <Text
                     style={[
-                      styles.bottomTabText,
-                      activeTab === "exercices" && styles.bottomTabTextActive,
+                      styles.texteOngletBas,
+                      ongletFicheActif === "exercices" &&
+                        styles.texteOngletBasActif,
                     ]}
                   >
                     Exercices
@@ -958,81 +1047,92 @@ export default function MusculationScreen() {
           </View>
         </Modal>
 
-        <Modal visible={workoutModalVisible} transparent animationType="none">
-          <View style={styles.modalRoot}>
+        {/* Modal du générateur de programmes personnalisés. */}
+        <Modal visible={generateurVisible} transparent animationType="none">
+          <View style={styles.racineModal}>
             <Animated.View
               style={[
-                styles.backdrop,
+                styles.fondAssombri,
                 {
-                  opacity: workoutBackdropOpacity,
+                  opacity: opaciteFondGenerateur,
                 },
               ]}
             >
               <Pressable
                 style={StyleSheet.absoluteFill}
-                onPress={closeWorkoutModal}
+                onPress={fermerGenerateurProgrammes}
               />
             </Animated.View>
 
             <Animated.View
               style={[
-                styles.workoutSheet,
+                styles.ficheProgramme,
                 {
-                  transform: [{ translateY: workoutTranslateY }],
+                  transform: [{ translateY: translationYGenerateur }],
                 },
               ]}
             >
-              <View style={styles.handle} />
+              <View style={styles.poignee} />
 
-              <View style={styles.sheetHeader}>
+              <View style={styles.enteteFiche}>
                 <View>
-                  <Text style={styles.sheetTitle}>Workout Generator</Text>
-                  <Text style={styles.sheetSubtitle}>
-                    Crée et sauvegarde tes workouts
+                  <Text style={styles.titreFiche}>Générateur de programmes</Text>
+                  <Text style={styles.sousTitreFiche}>
+                    Crée et sauvegarde tes programmes
                   </Text>
                 </View>
 
-                <Pressable style={styles.closeBtn} onPress={closeWorkoutModal}>
-                  <Text style={styles.closeBtnText}>Fermer</Text>
+                <Pressable
+                  style={styles.boutonFermer}
+                  onPress={fermerGenerateurProgrammes}
+                >
+                  <Text style={styles.texteBoutonFermer}>Fermer</Text>
                 </Pressable>
               </View>
 
               <ScrollView
-                contentContainerStyle={styles.sheetContent}
+                contentContainerStyle={styles.contenuFiche}
                 showsVerticalScrollIndicator={false}
               >
-                {workoutTab === "create" ? (
+                {ongletProgrammeActif === "creer" ? (
                   <>
-                    <View style={styles.infoBlock}>
-                      <Text style={styles.blockTitle}>Nommer workout</Text>
+                    <View style={styles.blocInfo}>
+                      <Text style={styles.titreBloc}>Nommer le programme</Text>
                       <TextInput
-                        value={workoutTitle}
-                        onChangeText={setWorkoutTitle}
-                        placeholder="Ex: Leg Day"
-                        style={styles.input}
+                        value={titreProgramme}
+                        onChangeText={setTitreProgramme}
+                        placeholder="Ex. : Jour des jambes"
+                        style={styles.champTexte}
                         placeholderTextColor="#999"
                       />
                     </View>
 
-                    <View style={styles.createHeaderRow}>
-                      <Text style={styles.blockTitle}>Exercices</Text>
+                    <View style={styles.rangeeEnteteCreation}>
+                      <Text style={styles.titreBloc}>Exercices</Text>
 
                       <Pressable
-                        style={styles.addExerciseBtn}
-                        onPress={addWorkoutExercise}
+                        style={styles.boutonAjouterExercice}
+                        onPress={ajouterExerciceProgramme}
                       >
                         <Ionicons name="add" size={18} color="white" />
-                        <Text style={styles.addExerciseText}>Add exercise</Text>
+                        <Text style={styles.texteAjouterExercice}>
+                          Ajouter un exercice
+                        </Text>
                       </Pressable>
                     </View>
 
-                    {workoutExercises.map((exercise) => (
-                      <View key={exercise.id} style={styles.workoutExerciseCard}>
-                        <View style={styles.exerciseHeaderRow}>
-                          <Text style={styles.smallInfoLabel}>Exercice</Text>
+                    {exercicesProgramme.map((exercice) => (
+                      <View
+                        key={exercice.id}
+                        style={styles.carteExerciceProgramme}
+                      >
+                        <View style={styles.rangeeEnteteExercice}>
+                          <Text style={styles.libellePetiteCarte}>Exercice</Text>
                           <Pressable
-                            onPress={() => removeWorkoutExercise(exercise.id)}
-                            style={styles.trashBtn}
+                            onPress={() =>
+                              supprimerExerciceProgramme(exercice.id)
+                            }
+                            style={styles.boutonPoubelle}
                           >
                             <Ionicons
                               name="trash-outline"
@@ -1043,45 +1143,61 @@ export default function MusculationScreen() {
                         </View>
 
                         <TextInput
-                          value={exercise.name}
-                          onChangeText={(value) =>
-                            updateWorkoutExercise(exercise.id, "name", value)
+                          value={exercice.nom}
+                          onChangeText={(valeur) =>
+                            mettreAJourExerciceProgramme(
+                              exercice.id,
+                              "nom",
+                              valeur
+                            )
                           }
                           placeholder="Nom de l'exercice"
-                          style={styles.input}
+                          style={styles.champTexte}
                           placeholderTextColor="#999"
                         />
 
-                        <View style={styles.rowInputs}>
+                        <View style={styles.rangeeChamps}>
                           <TextInput
-                            value={exercise.sets}
-                            onChangeText={(value) =>
-                              updateWorkoutExercise(exercise.id, "sets", value)
+                            value={exercice.series}
+                            onChangeText={(valeur) =>
+                              mettreAJourExerciceProgramme(
+                                exercice.id,
+                                "series",
+                                valeur
+                              )
                             }
-                            placeholder="Sets"
-                            style={[styles.input, styles.smallInput]}
+                            placeholder="Séries"
+                            style={[styles.champTexte, styles.petitChampTexte]}
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                           />
 
                           <TextInput
-                            value={exercise.reps}
-                            onChangeText={(value) =>
-                              updateWorkoutExercise(exercise.id, "reps", value)
+                            value={exercice.repetitions}
+                            onChangeText={(valeur) =>
+                              mettreAJourExerciceProgramme(
+                                exercice.id,
+                                "repetitions",
+                                valeur
+                              )
                             }
-                            placeholder="Reps"
-                            style={[styles.input, styles.smallInput]}
+                            placeholder="Répétitions"
+                            style={[styles.champTexte, styles.petitChampTexte]}
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                           />
 
                           <TextInput
-                            value={exercise.weight}
-                            onChangeText={(value) =>
-                              updateWorkoutExercise(exercise.id, "weight", value)
+                            value={exercice.poids}
+                            onChangeText={(valeur) =>
+                              mettreAJourExerciceProgramme(
+                                exercice.id,
+                                "poids",
+                                valeur
+                              )
                             }
                             placeholder="Poids"
-                            style={[styles.input, styles.smallInput]}
+                            style={[styles.champTexte, styles.petitChampTexte]}
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                           />
@@ -1089,45 +1205,55 @@ export default function MusculationScreen() {
                       </View>
                     ))}
 
-                    <Pressable style={styles.saveWorkoutBtn} onPress={saveWorkout}>
+                    <Pressable
+                      style={styles.boutonSauvegarderProgramme}
+                      onPress={sauvegarderProgramme}
+                    >
                       <Ionicons name="save-outline" size={18} color="white" />
-                      <Text style={styles.saveWorkoutText}>
-                        Sauvegarder workout
+                      <Text style={styles.texteSauvegarderProgramme}>
+                        Sauvegarder le programme
                       </Text>
                     </Pressable>
                   </>
                 ) : (
                   <>
-                    {savedWorkouts.length === 0 ? (
-                      <Text style={styles.emptyText}>
-                        Aucun workout sauvegardé pour le moment.
+                    {programmesSauvegardes.length === 0 ? (
+                      <Text style={styles.texteVide}>
+                        Aucun programme sauvegardé pour le moment.
                       </Text>
                     ) : (
                       <>
-                        <View style={styles.savedWorkoutList}>
-                          {savedWorkouts.map((workout) => (
+                        <View style={styles.listeProgrammesSauvegardes}>
+                          {programmesSauvegardes.map((programme) => (
                             <Swipeable
-                              key={workout.id}
+                              key={programme.id}
                               overshootRight={false}
-                              renderRightActions={(progress, dragX) =>
-                                renderRightDeleteAction(progress, dragX, workout.id)
+                              renderRightActions={(progression, deplacementX) =>
+                                rendreActionSupprimerDroite(
+                                  progression,
+                                  deplacementX,
+                                  programme.id
+                                )
                               }
                             >
                               <Pressable
                                 style={[
-                                  styles.savedWorkoutCard,
-                                  selectedSavedWorkout?.id === workout.id &&
-                                    styles.savedWorkoutCardActive,
+                                  styles.carteProgrammeSauvegarde,
+                                  programmeSauvegardeSelectionne?.id ===
+                                    programme.id &&
+                                    styles.carteProgrammeSauvegardeActive,
                                 ]}
-                                onPress={() => setSelectedSavedWorkout(workout)}
+                                onPress={() =>
+                                  setProgrammeSauvegardeSelectionne(programme)
+                                }
                               >
                                 <View>
-                                  <Text style={styles.savedWorkoutTitle}>
-                                    {workout.title}
+                                  <Text style={styles.titreProgrammeSauvegarde}>
+                                    {programme.titre}
                                   </Text>
-                                  <Text style={styles.savedWorkoutMeta}>
-                                    {workout.exercises.length} exercice
-                                    {workout.exercises.length > 1 ? "s" : ""}
+                                  <Text style={styles.metaProgrammeSauvegarde}>
+                                    {programme.exercices.length} exercice
+                                    {programme.exercices.length > 1 ? "s" : ""}
                                   </Text>
                                 </View>
 
@@ -1141,26 +1267,29 @@ export default function MusculationScreen() {
                           ))}
                         </View>
 
-                        {selectedSavedWorkout ? (
-                          <View style={styles.infoBlock}>
-                            <Text style={styles.blockTitle}>
-                              {selectedSavedWorkout.title}
+                        {programmeSauvegardeSelectionne ? (
+                          <View style={styles.blocInfo}>
+                            <Text style={styles.titreBloc}>
+                              {programmeSauvegardeSelectionne.titre}
                             </Text>
 
-                            {selectedSavedWorkout.exercises.map((item) => (
-                              <View
-                                key={item.id}
-                                style={styles.savedExerciseRow}
-                              >
-                                <Text style={styles.savedExerciseName}>
-                                  {item.name || "Exercice sans nom"}
-                                </Text>
-                                <Text style={styles.savedExerciseMeta}>
-                                  Sets: {item.sets || "-"} | Reps: {item.reps || "-"}{" "}
-                                  | Poids: {item.weight || "-"}
-                                </Text>
-                              </View>
-                            ))}
+                            {programmeSauvegardeSelectionne.exercices.map(
+                              (element) => (
+                                <View
+                                  key={element.id}
+                                  style={styles.rangeeExerciceSauvegarde}
+                                >
+                                  <Text style={styles.nomExerciceSauvegarde}>
+                                    {element.nom || "Exercice sans nom"}
+                                  </Text>
+                                  <Text style={styles.metaExerciceSauvegarde}>
+                                    Séries : {element.series || "-"} | Répétitions :{" "}
+                                    {element.repetitions || "-"} | Poids :{" "}
+                                    {element.poids || "-"}
+                                  </Text>
+                                </View>
+                              )
+                            )}
                           </View>
                         ) : null}
                       </>
@@ -1169,18 +1298,20 @@ export default function MusculationScreen() {
                 )}
               </ScrollView>
 
-              <View style={styles.bottomTabs}>
+              <View style={styles.ongletsBas}>
                 <Pressable
                   style={[
-                    styles.bottomTabBtn,
-                    workoutTab === "create" && styles.bottomTabBtnActive,
+                    styles.boutonOngletBas,
+                    ongletProgrammeActif === "creer" &&
+                      styles.boutonOngletBasActif,
                   ]}
-                  onPress={() => setWorkoutTab("create")}
+                  onPress={() => setOngletProgrammeActif("creer")}
                 >
                   <Text
                     style={[
-                      styles.bottomTabText,
-                      workoutTab === "create" && styles.bottomTabTextActive,
+                      styles.texteOngletBas,
+                      ongletProgrammeActif === "creer" &&
+                        styles.texteOngletBasActif,
                     ]}
                   >
                     Créer
@@ -1189,18 +1320,20 @@ export default function MusculationScreen() {
 
                 <Pressable
                   style={[
-                    styles.bottomTabBtn,
-                    workoutTab === "saved" && styles.bottomTabBtnActive,
+                    styles.boutonOngletBas,
+                    ongletProgrammeActif === "sauvegardes" &&
+                      styles.boutonOngletBasActif,
                   ]}
-                  onPress={() => setWorkoutTab("saved")}
+                  onPress={() => setOngletProgrammeActif("sauvegardes")}
                 >
                   <Text
                     style={[
-                      styles.bottomTabText,
-                      workoutTab === "saved" && styles.bottomTabTextActive,
+                      styles.texteOngletBas,
+                      ongletProgrammeActif === "sauvegardes" &&
+                        styles.texteOngletBasActif,
                     ]}
                   >
-                    Mes workouts
+                    Mes programmes
                   </Text>
                 </Pressable>
               </View>
@@ -1213,28 +1346,28 @@ export default function MusculationScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  ecran: {
     flex: 1,
     backgroundColor: "#e8c0d7",
   },
-  container: {
+  conteneur: {
     padding: 16,
     paddingBottom: 28,
     gap: 16,
   },
-  title: {
+  titre: {
     fontSize: 30,
     fontWeight: "800",
     textAlign: "center",
     marginTop: 10,
   },
 
-  switchRow: {
+  rangeeInterrupteur: {
     flexDirection: "row",
     gap: 12,
     justifyContent: "center",
   },
-  switchBtn: {
+  boutonInterrupteur: {
     backgroundColor: "white",
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -1244,23 +1377,23 @@ const styles = StyleSheet.create({
     minWidth: 135,
     alignItems: "center",
   },
-  switchBtnActive: {
+  boutonInterrupteurActif: {
     backgroundColor: "#efb6d4",
     borderColor: "#efb6d4",
   },
-  switchText: {
+  texteInterrupteur: {
     fontSize: 16,
     fontWeight: "700",
     color: "#333",
   },
-  switchTextActive: {
+  texteInterrupteurActif: {
     color: "white",
   },
 
-  generatorButtonRow: {
+  rangeeBoutonGenerateur: {
     alignItems: "center",
   },
-  generatorBtn: {
+  boutonGenerateur: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
@@ -1269,13 +1402,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 14,
   },
-  generatorBtnText: {
+  texteBoutonGenerateur: {
     color: "white",
     fontWeight: "800",
     fontSize: 15,
   },
 
-  bodyCard: {
+  carteCorps: {
     backgroundColor: "white",
     borderRadius: 22,
     paddingVertical: 18,
@@ -1285,31 +1418,31 @@ const styles = StyleSheet.create({
     minHeight: 560,
   },
 
-  modalRoot: {
+  racineModal: {
     flex: 1,
     justifyContent: "flex-end",
   },
-  backdrop: {
+  fondAssombri: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.28)",
   },
 
-  sheet: {
-    height: SCREEN_HEIGHT * 0.72,
+  fiche: {
+    height: HAUTEUR_ECRAN * 0.72,
     backgroundColor: "#fff",
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
     overflow: "hidden",
   },
-  workoutSheet: {
-    height: SCREEN_HEIGHT * 0.84,
+  ficheProgramme: {
+    height: HAUTEUR_ECRAN * 0.84,
     backgroundColor: "#fff",
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
     overflow: "hidden",
   },
 
-  handle: {
+  poignee: {
     width: 54,
     height: 6,
     borderRadius: 999,
@@ -1319,7 +1452,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  sheetHeader: {
+  enteteFiche: {
     paddingHorizontal: 18,
     paddingBottom: 10,
     paddingTop: 6,
@@ -1329,64 +1462,64 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
-  sheetTitle: {
+  titreFiche: {
     fontSize: 26,
     fontWeight: "800",
     color: "#111",
   },
-  sheetSubtitle: {
+  sousTitreFiche: {
     fontSize: 14,
     color: "#666",
     marginTop: 2,
   },
-  closeBtn: {
+  boutonFermer: {
     backgroundColor: "#f6f6f6",
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 12,
   },
-  closeBtnText: {
+  texteBoutonFermer: {
     fontSize: 14,
     fontWeight: "700",
     color: "#333",
   },
 
-  sheetContent: {
+  contenuFiche: {
     padding: 18,
     paddingBottom: 110,
     gap: 14,
   },
 
-  infoBlock: {
+  blocInfo: {
     backgroundColor: "#fafafa",
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
     borderColor: "#ededed",
   },
-  blockTitle: {
+  titreBloc: {
     fontSize: 18,
     fontWeight: "800",
     marginBottom: 8,
     color: "#111",
   },
-  blockText: {
+  texteBloc: {
     fontSize: 16,
     lineHeight: 24,
     color: "#333",
   },
-  bulletText: {
+  textePuce: {
     fontSize: 16,
     lineHeight: 24,
     color: "#333",
     marginBottom: 4,
   },
 
-  rowCards: {
+  rangeeCartes: {
     flexDirection: "row",
     gap: 12,
   },
-  smallInfoCard: {
+  petiteCarteInfo: {
     flex: 1,
     backgroundColor: "#fafafa",
     borderRadius: 16,
@@ -1394,35 +1527,35 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ededed",
   },
-  smallInfoLabel: {
+  libellePetiteCarte: {
     fontSize: 15,
     fontWeight: "800",
     marginBottom: 8,
     color: "#111",
   },
-  smallInfoValue: {
+  valeurPetiteCarte: {
     fontSize: 15,
     lineHeight: 22,
     color: "#333",
   },
 
-  exerciseGrid: {
+  grilleExercices: {
     gap: 14,
   },
-  exerciseCard: {
+  carteExercice: {
     backgroundColor: "#fafafa",
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#ececec",
   },
-  exerciseImage: {
+  imageExercice: {
     width: "100%",
     height: 190,
     resizeMode: "cover",
     backgroundColor: "#f2f2f2",
   },
-  exerciseName: {
+  nomExercice: {
     padding: 12,
     fontSize: 16,
     fontWeight: "800",
@@ -1430,12 +1563,12 @@ const styles = StyleSheet.create({
     color: "#222",
   },
 
-  createHeaderRow: {
+  rangeeEnteteCreation: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  addExerciseBtn: {
+  boutonAjouterExercice: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
@@ -1444,12 +1577,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 12,
   },
-  addExerciseText: {
+  texteAjouterExercice: {
     color: "white",
     fontWeight: "800",
     fontSize: 14,
   },
-  workoutExerciseCard: {
+  carteExerciceProgramme: {
     backgroundColor: "#fafafa",
     borderRadius: 16,
     padding: 14,
@@ -1457,17 +1590,17 @@ const styles = StyleSheet.create({
     borderColor: "#ededed",
     gap: 10,
   },
-  exerciseHeaderRow: {
+  rangeeEnteteExercice: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  trashBtn: {
+  boutonPoubelle: {
     padding: 6,
     borderRadius: 10,
     backgroundColor: "#fff5f5",
   },
-  input: {
+  champTexte: {
     backgroundColor: "white",
     borderRadius: 12,
     borderWidth: 1,
@@ -1477,14 +1610,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#222",
   },
-  rowInputs: {
+  rangeeChamps: {
     flexDirection: "row",
     gap: 10,
   },
-  smallInput: {
+  petitChampTexte: {
     flex: 1,
   },
-  saveWorkoutBtn: {
+  boutonSauvegarderProgramme: {
     marginTop: 4,
     backgroundColor: "#222",
     borderRadius: 14,
@@ -1494,16 +1627,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
-  saveWorkoutText: {
+  texteSauvegarderProgramme: {
     color: "white",
     fontWeight: "800",
     fontSize: 15,
   },
 
-  savedWorkoutList: {
+  listeProgrammesSauvegardes: {
     gap: 10,
   },
-  savedWorkoutCard: {
+  carteProgrammeSauvegarde: {
     backgroundColor: "#fafafa",
     borderRadius: 16,
     padding: 14,
@@ -1513,42 +1646,42 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  savedWorkoutCardActive: {
+  carteProgrammeSauvegardeActive: {
     borderColor: "#efb6d4",
     backgroundColor: "#fff8fc",
   },
-  savedWorkoutTitle: {
+  titreProgrammeSauvegarde: {
     fontSize: 17,
     fontWeight: "800",
     color: "#111",
   },
-  savedWorkoutMeta: {
+  metaProgrammeSauvegarde: {
     fontSize: 13,
     color: "#666",
     marginTop: 4,
   },
-  savedExerciseRow: {
+  rangeeExerciceSauvegarde: {
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#ededed",
   },
-  savedExerciseName: {
+  nomExerciceSauvegarde: {
     fontSize: 16,
     fontWeight: "800",
     color: "#111",
     marginBottom: 4,
   },
-  savedExerciseMeta: {
+  metaExerciceSauvegarde: {
     fontSize: 14,
     color: "#555",
   },
 
-  deleteAction: {
+  actionSupprimer: {
     justifyContent: "center",
     alignItems: "flex-end",
     marginBottom: 10,
   },
-  deleteActionPressable: {
+  boutonActionSupprimer: {
     width: 100,
     height: "100%",
     minHeight: 78,
@@ -1558,19 +1691,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
-  deleteActionText: {
+  texteActionSupprimer: {
     color: "white",
     fontWeight: "800",
     fontSize: 13,
   },
 
-  emptyText: {
+  texteVide: {
     fontSize: 16,
     color: "#666",
     fontStyle: "italic",
   },
 
-  bottomTabs: {
+  ongletsBas: {
     position: "absolute",
     bottom: 0,
     left: 0,
@@ -1584,22 +1717,22 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#eeeeee",
   },
-  bottomTabBtn: {
+  boutonOngletBas: {
     flex: 1,
     backgroundColor: "#f4f4f4",
     borderRadius: 16,
     paddingVertical: 14,
     alignItems: "center",
   },
-  bottomTabBtnActive: {
+  boutonOngletBasActif: {
     backgroundColor: "#efb6d4",
   },
-  bottomTabText: {
+  texteOngletBas: {
     fontSize: 16,
     fontWeight: "800",
     color: "#333",
   },
-  bottomTabTextActive: {
+  texteOngletBasActif: {
     color: "white",
   },
 });
