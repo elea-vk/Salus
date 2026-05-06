@@ -72,7 +72,7 @@ export default function Index() {
         <View style={styles.row}>
           <Pressable
             style={styles.pageButton}
-            onPress={() => router.push("/graphique")}
+            onPress={() => router.push("/sommeilGraphique")}
           >
             <Ionicons name="bar-chart-outline" size={41} color={Couleurs.secondary} />
           </Pressable>
