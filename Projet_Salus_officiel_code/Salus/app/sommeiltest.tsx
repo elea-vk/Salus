@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { DateTimeSpinner } from "react-native-date-time-spinner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { LinearGradient } from "expo-linear-gradient";
 import * as SQLite from "expo-sqlite";
-import { router } from "expo-router"; // idk
+import { router } from "expo-router";
 
 import {
   ajouterNuit,
@@ -31,38 +38,44 @@ export default function SommeilPage() {
   const [showModal, setShowModal] = useState(false);
 
   const derniereNuit =
-  nuitListe.length > 0
-    ? [...nuitListe].sort(
-        (a, b) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-      )[0]
-    : null;
+    nuitListe.length > 0
+      ? [...nuitListe].sort(
+          (a, b) =>
+            new Date(b.date).getTime() -
+            new Date(a.date).getTime()
+        )[0]
+      : null;
 
   const getSleepMessage = (heures: number) => {
-  if (heures < 7) return "Sommeil insuffisant";
-  if (heures > 9) return "Excès de sommeil";
-  else return "Quantité de sommeil optimale";
-};
+    if (heures < 7) return "Sommeil insuffisant";
+    if (heures > 9) return "Excès de sommeil";
+    return "Quantité de sommeil optimale";
+  };
 
   useEffect(() => {
-  async function init() {
-    const database = await initDatabase();
-    setDb(database);
+    async function init() {
+      const database = await initDatabase();
+      setDb(database);
 
-    // 👇 LOAD DATA IMMEDIATELY
-    const toutes = await recupererToutesNuits(database);
-    setNuitListe(toutes);
-  }
+      const toutes = await recupererToutesNuits(database);
+      setNuitListe(toutes);
+    }
 
-  init();
-}, []);
+    init();
+  }, []);
 
   const ajouter = async () => {
     if (!db) return;
 
     const nuit = new Sommeil(lever, coucher, lever);
-    const dateUtil = lever.toISOString().split("T")[0];
-    const heures = Number(nuit.calculerHeuresSommeil().toFixed(2));
+
+    const dateUtil = lever
+      .toISOString()
+      .split("T")[0];
+
+    const heures = Number(
+      nuit.calculerHeuresSommeil().toFixed(2)
+    );
 
     await ajouterNuit(db, dateUtil, heures);
     await afficher();
@@ -70,17 +83,18 @@ export default function SommeilPage() {
 
   const afficher = async () => {
     if (!db) return;
+
     const toutes = await recupererToutesNuits(db);
     setNuitListe(toutes);
   };
 
   const supprimerToutes = async () => {
     if (!db) return;
+
     await supprimerToutesNuits(db);
     setNuitListe([]);
   };
 
-  // Spinner component
   const PickerBlock = ({
     value,
     setValue,
@@ -102,136 +116,229 @@ export default function SommeilPage() {
         padHourWithZero
         padMinuteWithZero
         LinearGradient={LinearGradient}
-        pickerGradientOverlayProps={{ locations: [0, 0.5, 0.5, 1] }}
+        pickerGradientOverlayProps={{
+          locations: [0, 0.5, 0.5, 1],
+        }}
         timeSeparator=":"
         onDateChange={({ date }) => setValue(date)}
       />
+
       <View style={styles.outlineBox} />
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titre}>Sommeil</Text>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: Couleurs.secondary,
+      }}
+    >
+      <View style={styles.container}>
 
-      <View style={styles.card}>
-  <Text style={styles.cardTitle}>Dernière nuit</Text>
+        {/* TITLE */}
+        <View style={styles.header}>
+          <Text style={styles.titre}>
+            SOMMEIL
+          </Text>
 
-  {derniereNuit ? (
-    <>
-      <Text style={styles.cardText}>
-        {format(new Date(derniereNuit.date), "eee d MMM", { locale: fr })} — {derniereNuit.heuresSommeil} h
-      </Text>
+          <View style={styles.diviseur} />
+        </View>
 
-      <Text style={styles.cardMessage}>
-        {getSleepMessage(derniereNuit.heuresSommeil)}
-      </Text>
-    </>
-  ) : (
-    <Text style={styles.cardText}>
-      Aucune nuit enregistrée pour le moment
-    </Text>
-  )}
-</View>
+        {/* CARD */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>
+            Dernière nuit
+          </Text>
 
-      {/* ADD BUTTON */}
-      <TouchableOpacity
-        style={styles.addMainButton}
-        onPress={() => setShowModal(true)}
-      >
-        <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>
-          Ajouter une nuit
-        </Text>
-      </TouchableOpacity>
+          {derniereNuit ? (
+            <>
+              <Text style={styles.cardText}>
+                {format(
+                  new Date(derniereNuit.date),
+                  "eee d MMM",
+                  { locale: fr }
+                )}{" "}
+                — {derniereNuit.heuresSommeil} h
+              </Text>
 
-      <TouchableOpacity
-  style={styles.btnGraphique}
-  onPress={() => router.push("/sommeilGraphique")}
->
-  <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>Voir l’évolution</Text>
-</TouchableOpacity>
+              <Text style={styles.cardMessage}>
+                {getSleepMessage(
+                  derniereNuit.heuresSommeil
+                )}
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.cardText}>
+              Aucune nuit enregistrée pour le moment
+            </Text>
+          )}
+        </View>
 
-      {/* HISTORIQUE */}
-      <View style={{ marginTop: 10, width: "100%" }}>
+        {/* BUTTONS */}
         <TouchableOpacity
-          onPress={() => {
-            setAfficherDonnees(!afficherDonnees);
-            afficher();
-          }}
-          style={styles.toggleHeader}
+          style={styles.addMainButton}
+          onPress={() => setShowModal(true)}
+          activeOpacity={0.8}
         >
-          <Text style={styles.historiqueTitre}>Historique</Text>
-          <Text style={styles.arrow}>{afficherDonnees ? "▲" : "▼"}</Text>
+          <Text style={styles.buttonText}>
+            Ajouter une nuit
+          </Text>
         </TouchableOpacity>
 
-        {afficherDonnees && (
-          <View style={{ marginTop: 10 }}>
-            {nuitListe.length === 0 && (
-              <Text style={{ color: "#666" }}>
-                Aucune entrée pour le moment.
-              </Text>
-            )}
+        <TouchableOpacity
+          style={styles.btnGraphique}
+          onPress={() =>
+            router.push("/sommeilGraphique")
+          }
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>
+            Voir l’évolution
+          </Text>
+        </TouchableOpacity>
 
-            {nuitListe.map((item, index) => (
-              <View key={index} style={styles.historiqueItem}>
-                <Text style={styles.historiqueTexte}>
-                  {item.date} — {item.heuresSommeil} h
+        {/* HISTORIQUE */}
+        <View style={{ marginTop: 10, width: "100%" }}>
+          <TouchableOpacity
+            onPress={() => {
+              setAfficherDonnees(!afficherDonnees);
+              afficher();
+            }}
+            style={styles.toggleHeader}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.historiqueTitre}>
+              Historique
+            </Text>
+
+            <Text style={styles.arrow}>
+              {afficherDonnees ? "▲" : "▼"}
+            </Text>
+          </TouchableOpacity>
+
+          {afficherDonnees && (
+            <View style={{ marginTop: 10 }}>
+
+              {nuitListe.length === 0 && (
+                <Text style={{ color: "#666" }}>
+                  Aucune entrée pour le moment.
                 </Text>
-              </View>
-            ))}
+              )}
 
-            <TouchableOpacity
-              onPress={supprimerToutes}
-              style={styles.deleteButton}
-            >
-              <Text style={{ color: "white", fontWeight: "600" }}>
-                Supprimer toutes les entrées
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+              {nuitListe.map((item, index) => (
+                <View
+                  key={index}
+                  style={styles.historiqueItem}
+                >
+                  <Text style={styles.historiqueTexte}>
+                    {item.date} —{" "}
+                    {item.heuresSommeil} h
+                  </Text>
+                </View>
+              ))}
 
-      {/* MODAL */}
-      <Modal visible={showModal} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalBox}>
-            <Text style={styles.titre}>Nouvelle nuit</Text>
-
-            <Text style={styles.label}>Heure du coucher :</Text>
-            <Text style={styles.selected}>
-              {format(coucher, "eee d MMM yyyy - HH:mm", { locale: fr })}
-            </Text>
-            <PickerBlock value={coucher} setValue={setCoucher} />
-
-            <Text style={styles.label}>Heure du réveil :</Text>
-            <Text style={styles.selected}>
-              {format(lever, "eee d MMM yyyy - HH:mm", { locale: fr })}
-            </Text>
-            <PickerBlock value={lever} setValue={setLever} />
-
-            <View style={{ flexDirection: "row", gap: 10, marginTop: 15 }}>
               <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => setShowModal(false)}
+                onPress={supprimerToutes}
+                style={styles.deleteButton}
+                activeOpacity={0.8}
               >
-                <Text>Annuler</Text>
+                <Text
+                  style={{
+                    color: "white",
+                    fontWeight: "600",
+                  }}
+                >
+                  Supprimer toutes les entrées
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.addBtn}
-                onPress={async () => {
-                  await ajouter();
-                  setShowModal(false);
+            </View>
+          )}
+        </View>
+
+        {/* MODAL */}
+        <Modal
+          visible={showModal}
+          animationType="slide"
+          transparent
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalBox}>
+
+              <Text style={styles.modalTitle}>
+                Nouvelle nuit
+              </Text>
+
+              <Text style={styles.label}>
+                Heure du coucher :
+              </Text>
+
+              <Text style={styles.selected}>
+                {format(
+                  coucher,
+                  "eee d MMM yyyy - HH:mm",
+                  { locale: fr }
+                )}
+              </Text>
+
+              <PickerBlock
+                value={coucher}
+                setValue={setCoucher}
+              />
+
+              <Text style={styles.label}>
+                Heure du réveil :
+              </Text>
+
+              <Text style={styles.selected}>
+                {format(
+                  lever,
+                  "eee d MMM yyyy - HH:mm",
+                  { locale: fr }
+                )}
+              </Text>
+
+              <PickerBlock
+                value={lever}
+                setValue={setLever}
+              />
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  marginTop: 15,
                 }}
               >
-                <Text style={{ color: "white" }}>Ajouter</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => setShowModal(false)}
+                  activeOpacity={0.8}
+                >
+                  <Text>Annuler</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.addBtn}
+                  activeOpacity={0.8}
+                  onPress={async () => {
+                    await ajouter();
+                    setShowModal(false);
+                  }}
+                >
+                  <Text style={{ color: "white" }}>
+                    Ajouter
+                  </Text>
+                </TouchableOpacity>
+
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -242,28 +349,61 @@ const styles = StyleSheet.create({
     backgroundColor: Couleurs.background,
   },
 
-  titre: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
+  header: {
+    alignItems: "center",
+    marginTop: 10,
     marginBottom: 20,
+  },
+
+  titre: {
+    fontSize: 30,
+    fontWeight: "bold",
     color: Couleurs.darkText,
+    letterSpacing: 2,
+  },
+
+  diviseur: {
+    height: 4,
+    backgroundColor: Couleurs.secondary,
+    width: "100%",
+    borderRadius: 10,
+    marginTop: 18,
   },
 
   addMainButton: {
     backgroundColor: Couleurs.primary,
-    padding: 12,
-    borderRadius: 10,
+    padding: 14,
+    borderRadius: 18,
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 15,
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+
+    elevation: 6,
   },
 
   btnGraphique: {
     backgroundColor: Couleurs.primary,
-    padding: 12,
-    borderRadius: 10,
+    padding: 14,
+    borderRadius: 18,
     alignItems: "center",
     marginBottom: 20,
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+
+    elevation: 6,
+  },
+
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
   },
 
   label: {
@@ -316,7 +456,7 @@ const styles = StyleSheet.create({
   },
 
   historiqueItem: {
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderColor: "#ddd",
   },
@@ -329,9 +469,16 @@ const styles = StyleSheet.create({
   deleteButton: {
     marginTop: 15,
     backgroundColor: "#d9534f",
-    padding: 10,
-    borderRadius: 8,
+    padding: 12,
+    borderRadius: 14,
     alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+
+    elevation: 5,
   },
 
   modalContainer: {
@@ -348,49 +495,60 @@ const styles = StyleSheet.create({
     width: "90%",
   },
 
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+    color: Couleurs.darkText,
+  },
+
   cancelBtn: {
     flex: 1,
-    padding: 10,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 12,
     backgroundColor: "#ddd",
     alignItems: "center",
   },
 
   addBtn: {
     flex: 1,
-    padding: 10,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 12,
     backgroundColor: Couleurs.primary,
     alignItems: "center",
   },
 
   card: {
-  backgroundColor: "white",
-  padding: 15,
-  borderRadius: 16,
-  marginBottom: 15,
-  shadowColor: "#000",
-  shadowOpacity: 0.1,
-  shadowRadius: 10,
-  elevation: 4,
-},
+    backgroundColor: "white",
+    padding: 18,
+    borderRadius: 20,
+    marginBottom: 18,
 
-cardTitle: {
-  fontSize: 18,
-  fontWeight: "bold",
-  marginBottom: 5,
-  color: "#333",
-},
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
 
-cardText: {
-  fontSize: 16,
-  color: "#555",
-},
+    elevation: 5,
+  },
 
-cardMessage: {
-  marginTop: 8,
-  fontSize: 16,
-  fontWeight: "600",
-  color: "#791d31",
-},
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+    color: "#333",
+  },
+
+  cardText: {
+    fontSize: 16,
+    color: "#555",
+  },
+
+  cardMessage: {
+    marginTop: 8,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#791d31",
+  },
 });

@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
+ Text,
   Pressable,
-  FlatList,
   TextInput,
   StyleSheet,
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Header from "../composantes/entete";
 import Couleurs from "../constantes/couleurs";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -39,6 +37,7 @@ export default function Habitudes() {
       setDb(database);
       await loadData(database);
     }
+
     init();
   }, []);
 
@@ -57,20 +56,31 @@ export default function Habitudes() {
     if (!newHabit.trim() || !db) return;
 
     const today = new Date().toISOString().split("T")[0];
+
     await ajouterHabitudes(db, today, newHabit);
 
     setNewHabit("");
     setShowModal(false);
+
     loadData();
   };
 
-  // TOGGLE = SAVE COMPLETION TODAY
+  // TOGGLE HABIT
   const toggleHabit = async (contenu: string) => {
     if (!db) return;
 
     const today = new Date().toISOString().split("T")[0];
 
-    await ajouterHabitudeFaite(db, today, contenu);
+    const dejaFaite = habitudesFaites.some(
+      (h) => h.contenu === contenu && h.dateFaite === today
+    );
+
+    if (dejaFaite) {
+      await supprimerHabitudeFaite(db, today, contenu);
+    } else {
+      await ajouterHabitudeFaite(db, today, contenu);
+    }
+
     loadData();
   };
 
@@ -83,7 +93,7 @@ export default function Habitudes() {
     );
   };
 
-  // STREAK CALCULATION
+  // STREAK
   const getStreak = (contenu: string) => {
     const dates = habitudesFaites
       .filter((h) => h.contenu === contenu)
@@ -114,14 +124,18 @@ export default function Habitudes() {
   // DELETE ONE
   const deleteHabit = async (contenu: string) => {
     if (!db) return;
+
     await supprimerHabitude(db, contenu);
+
     loadData();
   };
 
   // DELETE ALL
   const deleteAll = async () => {
     if (!db) return;
+
     await supprimerToutesHabitudes(db);
+
     loadData();
   };
 
@@ -130,10 +144,15 @@ export default function Habitudes() {
   ).length;
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <Header title="Habitudes" />
-
+    <SafeAreaView style={{ flex: 1, backgroundColor: Couleurs.secondary,}}>
       <View style={styles.container}>
+
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Text style={styles.title}>HABITUDES</Text>
+
+          <View style={styles.diviseur} />
+        </View>
 
         {/* CARD */}
         <View style={styles.card}>
@@ -149,6 +168,7 @@ export default function Habitudes() {
         {/* TODAY CHECKLIST */}
         {habits.map((item, index) => (
           <View key={index} style={styles.habitRow}>
+
             <Pressable
               style={[
                 styles.square,
@@ -168,6 +188,7 @@ export default function Habitudes() {
             <Text style={styles.streak}>
               🔥 {getStreak(item.contenu)}
             </Text>
+
           </View>
         ))}
 
@@ -179,15 +200,22 @@ export default function Habitudes() {
           <Text style={styles.historiqueTitre}>
             Mes habitudes
           </Text>
-          <Text>{showList ? "▲" : "▼"}</Text>
+
+          <Text style={styles.arrow}>
+            {showList ? "▲" : "▼"}
+          </Text>
         </Pressable>
 
         {/* LIST */}
         {showList && (
-          <View>
+          <View style={{ marginTop: 10 }}>
+
             {habits.map((item, index) => (
               <View key={index} style={styles.historiqueItem}>
-                <Text>{item.contenu}</Text>
+
+                <Text style={styles.listText}>
+                  {item.contenu}
+                </Text>
 
                 <Pressable
                   onPress={() => deleteHabit(item.contenu)}
@@ -198,11 +226,15 @@ export default function Habitudes() {
                     color="#f05752"
                   />
                 </Pressable>
+
               </View>
             ))}
 
-            <Pressable style={styles.deleteButton} onPress={deleteAll}>
-              <Text style={{ color: "white" }}>
+            <Pressable
+              style={styles.deleteButton}
+              onPress={deleteAll}
+            >
+              <Text style={{ color: "white", fontWeight: "600" }}>
                 Supprimer toutes les habitudes
               </Text>
             </Pressable>
@@ -211,17 +243,21 @@ export default function Habitudes() {
               style={styles.addMainButton}
               onPress={() => setShowModal(true)}
             >
-              <Text style={{ color: "white" }}>
+              <Text style={{ color: "white", fontWeight: "600" }}>
                 Ajouter une habitude
               </Text>
             </Pressable>
+
           </View>
         )}
 
         {/* MODAL */}
         <Modal visible={showModal} transparent animationType="fade">
+
           <View style={styles.modalContainer}>
+
             <View style={styles.modalBox}>
+
               <Text style={styles.modalTitle}>
                 Nouvelle habitude
               </Text>
@@ -234,6 +270,7 @@ export default function Habitudes() {
               />
 
               <View style={{ flexDirection: "row", gap: 10 }}>
+
                 <Pressable
                   style={styles.cancelBtn}
                   onPress={() => setShowModal(false)}
@@ -241,12 +278,21 @@ export default function Habitudes() {
                   <Text>Annuler</Text>
                 </Pressable>
 
-                <Pressable style={styles.addBtn} onPress={addHabit}>
-                  <Text style={{ color: "white" }}>Ajouter</Text>
+                <Pressable
+                  style={styles.addBtn}
+                  onPress={addHabit}
+                >
+                  <Text style={{ color: "white" }}>
+                    Ajouter
+                  </Text>
                 </Pressable>
+
               </View>
+
             </View>
+
           </View>
+
         </Modal>
 
       </View>
@@ -257,124 +303,218 @@ export default function Habitudes() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: Couleurs.background,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
 
+  // HEADER
+  header: {
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 20,
+  },
+
+  title: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: Couleurs.darkText,
+    letterSpacing: 2,
+  },
+
+  diviseur: {
+    height: 4,
+    backgroundColor: Couleurs.secondary,
+    width: "100%",
+    borderRadius: 10,
+    marginTop: 18,
+  },
+
+  // CARD
   card: {
     backgroundColor: "white",
-    padding: 15,
-    borderRadius: 16,
-    marginBottom: 15,
+    padding: 18,
+    borderRadius: 20,
+    marginBottom: 18,
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+
+    elevation: 5,
   },
 
   cardTitle: {
     fontSize: 18,
     fontWeight: "bold",
+    color: Couleurs.darkText,
   },
 
   cardText: {
+    marginTop: 5,
     color: "#666",
   },
 
+  // HABITS
   habitRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+
     backgroundColor: Couleurs.primary,
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+
+    padding: 14,
+    borderRadius: 16,
+
+    marginBottom: 12,
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+
+    elevation: 4,
   },
 
   square: {
     width: 24,
     height: 24,
     borderWidth: 2,
-    borderRadius: 4,
+    borderColor: Couleurs.darkText,
+    borderRadius: 6,
   },
 
   habitText: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 12,
+    fontSize: 16,
+    color: "#222",
   },
 
   streak: {
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: "600",
   },
 
+  // DROPDOWN
   toggleHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
+
     marginTop: 20,
   },
 
   historiqueTitre: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
+    color: Couleurs.darkText,
+  },
+
+  arrow: {
+    fontSize: 20,
   },
 
   historiqueItem: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 8,
+    alignItems: "center",
+
+    backgroundColor: "white",
+
+    padding: 14,
+    borderRadius: 14,
+
+    marginBottom: 10,
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+
+    elevation: 2,
+  },
+
+  listText: {
+    fontSize: 16,
+    color: "#333",
   },
 
   deleteButton: {
     backgroundColor: "#f05752",
-    padding: 10,
-    borderRadius: 8,
+
+    padding: 12,
+    borderRadius: 12,
+
     marginTop: 10,
     alignItems: "center",
+
+    elevation: 3,
   },
 
   addMainButton: {
     backgroundColor: "#84c284",
-    padding: 10,
-    borderRadius: 8,
+
+    padding: 12,
+    borderRadius: 12,
+
     marginTop: 10,
     alignItems: "center",
+
+    elevation: 3,
   },
 
+  // MODAL
   modalContainer: {
     flex: 1,
     justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.35)",
   },
 
   modalBox: {
     backgroundColor: "white",
+
     margin: 20,
     padding: 20,
-    borderRadius: 12,
+
+    borderRadius: 20,
   },
 
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 15,
+    color: Couleurs.darkText,
   },
 
   input: {
     borderWidth: 1,
-    padding: 8,
-    marginBottom: 10,
-    borderRadius: 8,
+    borderColor: "#ccc",
+
+    padding: 12,
+    marginBottom: 15,
+
+    borderRadius: 10,
   },
 
   cancelBtn: {
     flex: 1,
-    padding: 10,
+
+    padding: 12,
     backgroundColor: "#ddd",
-    borderRadius: 8,
+
+    borderRadius: 10,
     alignItems: "center",
   },
 
   addBtn: {
     flex: 1,
-    padding: 10,
+
+    padding: 12,
     backgroundColor: Couleurs.primary,
-    borderRadius: 8,
+
+    borderRadius: 10,
     alignItems: "center",
   },
 });
