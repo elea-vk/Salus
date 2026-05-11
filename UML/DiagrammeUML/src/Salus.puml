@@ -2,30 +2,21 @@
 'https://plantuml.com/sequence-diagram
 
 
-class Utilisateur {
-mail : String
-identifiant : String
-motDePasse : String
-profil : Profil
-changerMotDePasse (ancienMdp : string, nouveauMdp : string): void
-seConnecter() : boolean
-seDéconnecter() : void
-}
-
 class Profil {
+age : number
+nom : string
+sexe : sexeBiologique
+dateDeNaissance : date
+niveauActivité : string
 listeDeDonneesQt : list <DonneeQuotidienne>
 listeDeDonneesBio : list <DonneeQuotidienne>
-historiqueIndices : list <Indice>
-historiqueIndiceSante : list <indiceSanté>
-aRécupéré : boolean
-indiceSanté : number
 
-effacerDonnee() : void
+
 entrerDonnee() : Donnee
 obtenirDonneesBio(Date) : listeDeDonneesBio
 obtenirDonneesQt (Date) : listeDeDonneesQt
 
-calculerIndiceDeSante () : number
+
 
 }
 
@@ -33,10 +24,7 @@ class Donnee{
 date : Date
 
 }
-class  DonneeQuotidienne {
 
-estSuffisant (): boolean
-}
 class Sommeil {
 heureCoucher : date
 heureLever : date
@@ -46,28 +34,6 @@ calculerTempsSommeil(Date1, Date2) : number
 estSuffisant (): boolean
 }
 DonneeQuotidienne <|-- Sommeil
-
-class Hydratation {
-quantite : number
-type : string
-heure : Date
-
-estSuffisant(): boolean
-ajouterEntree(number): void
-}
-DonneeQuotidienne <|-- Hydratation
-
-class Stress {
-intensite : number
-estSuffisant(): boolean
-}
-DonneeQuotidienne <|--Stress
-
-class Pas {
-estSuffisant(): boolean
-}
-DonneeQuotidienne <|--Pas
-
 
 class activitePhysique {
 nomActivite : String
@@ -90,47 +56,13 @@ age : number
 taille : number
 sexe : enum
 poids : number
-caloriesNecessaires : number
 }
 
 Donnee <|-- DonneeBiologique
 Donnee <|-- DonneeQuotidienne
 
 
-class Indice{
-valeur :  number
-valeurRecommandee : number
-valeurMoyenne : number
-dateCalculIndice : Date
 
-calculerIndice() : number
-comparerAvcValeurReco () : string
-}
-
-class IndiceSommeil {
-
-
-}
-class IndiceHydratation {
-
-}
-class IndiceCalorie {
-
-}
-class IndiceStress {
-}
-class IndiceActPhys {
-
-}
-class IndicePas
-
-
-Indice<|-- IndiceSommeil
-Indice<|-- IndiceHydratation
-Indice<|-- IndiceCalorie
-Indice<|-- IndiceStress
-Indice<|-- IndiceActPhys
-Indice<|-- IndicePas
 
 class Entrainement{
 description
@@ -145,27 +77,13 @@ activitePhysique <|--Entrainement
 class AnalyseStats {
 profil : Profil
 moyenneSommeil : number
-moyenneHydratation : number
 moyenneCalories : number
-moyenneStress : number
-moyennePas : number
-indiceSanteMoyen : number
 moyenneActivite : number
-
-
-meilleurSommeil : Sommeil
-pireSommeil : Sommeil
-maxPas : Pas
-maxStress : Stress
-
-calculerToutesMoyennes (): void
-calculerExtremes (): void
 
 genererRapportQuotidien (Date): string
 genererRapportHebdo (Date, Date) : string
 genererRapportMensuel (Date, Date) : string
 
-analyserTendance (Indice) : string
 }
 
 
