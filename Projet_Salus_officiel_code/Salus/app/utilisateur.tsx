@@ -6,6 +6,7 @@ import {initDatabase, modifierDateDeNaissance,getUtilisateur,modifierPrenom,getD
 import { Picker } from '@react-native-picker/picker'
 import {Utilisateur } from "@/src/utilisateur"
 import { ScrollView } from "react-native"
+import Couleurs from "@/constantes/couleurs"
 
 
 
@@ -101,9 +102,11 @@ const sauvegarderUtilisateur = async () => {
 
   //affichage graphique
     return (
-      <View>
-  <ScrollView contentContainerStyle={styles.container}>
+    <View style={{ flex: 1, backgroundColor: Couleurs.background }}>
+    <ScrollView contentContainerStyle={styles.container}>
+    <View style={{ height: 30, backgroundColor: Couleurs.background }} />
     <Text style={styles.titre}>Profil utilisateur</Text>
+    <View style={styles.diviseur} />
 
     {/* PRÉNOM */}
     <View style={styles.sousboite}>
@@ -239,12 +242,22 @@ const sauvegarderUtilisateur = async () => {
     </View>
 
     {/* SAUVEGARDE */}
-    <Pressable style={styles.sauvegarderBouton} 
-    onPress={() => {
-    sauvegarderUtilisateur()
-  }}>
-      <Text style={styles.sauvegarderTexte}>Sauvegarder</Text>
-    </Pressable>
+    <Pressable
+  style={({ pressed }) => [
+    styles.sauvegarderBouton,
+    {
+      opacity: pressed ? 0.8 : 1,
+      transform: [{ scale: pressed ? 0.98 : 1 }],
+    },
+  ]}
+  onPress={() => {
+    sauvegarderUtilisateur();
+  }}
+>
+  <Text style={styles.sauvegarderTexte}>
+    Sauvegarder
+  </Text>
+</Pressable>
   </ScrollView>
 
   {/*affichage de la roue de choix de la date de naissance en dehors du scrollview, sinon ça apportait un bug */}
@@ -279,7 +292,6 @@ const sauvegarderUtilisateur = async () => {
       </View>
       )}
   </View>
- 
 
 
 )
@@ -287,9 +299,11 @@ const sauvegarderUtilisateur = async () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: "#cab5ce",
+    backgroundColor: Couleurs.background,
+
     flexGrow: 1,
   },
+
   auDessus: {
   position: "absolute",
   top: 0,
@@ -300,8 +314,9 @@ const styles = StyleSheet.create({
   justifyContent: "center",
   alignItems: "center",
 },
+
 boiteSpinner: {
-  backgroundColor: "#cab5ce",
+  backgroundColor: Couleurs.background,
   padding: 20,
   borderRadius: 16,
   width: "85%",
@@ -311,7 +326,8 @@ boiteSpinner: {
     fontSize: 28,
     fontWeight: "700",
     marginBottom: 20,
-    color : "#3f2346"
+    color : Couleurs.darkText,
+    textAlign: "center",
   },
 
   soustitre: {
@@ -319,17 +335,18 @@ boiteSpinner: {
     fontSize: 16,
     fontWeight: "600",
   },
+
   spinner: {
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 12,
     padding: 10,
-    backgroundColor: "#7d6b80",
+    backgroundColor: "#ffffff",
     marginTop: 10,
   },
 
   sousboite: {
-    backgroundColor: "#7d6b80",
+    backgroundColor: Couleurs.primary,
     borderRadius: 16,
     padding: 16,
     marginBottom: 14,
@@ -343,13 +360,13 @@ boiteSpinner: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 5,
   },
 
   label: {
     fontSize: 16,
     fontWeight: "600",
-    color : "#403352"
+    color : Couleurs.secondary
   },
 
   icone: {
@@ -376,10 +393,9 @@ boiteSpinner: {
   },
 
 
-
   bouton: {
     marginTop: 5,
-    backgroundColor: "#7C5CFF",
+    backgroundColor: Couleurs.secondary,
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
@@ -392,7 +408,7 @@ boiteSpinner: {
 
   sauvegarderBouton: {
     marginTop: 20,
-    backgroundColor: "#90809b",
+    backgroundColor: Couleurs.secondary,
     padding: 14,
     borderRadius: 14,
     alignItems: "center",
@@ -402,5 +418,13 @@ boiteSpinner: {
     color: "white",
     fontWeight: "700",
     fontSize: 16,
+  },
+
+    diviseur: {
+    height: 4,
+    backgroundColor: Couleurs.secondary,
+    width: "100%",
+    borderRadius: 10,
+    marginBottom: 18,
   },
 })
