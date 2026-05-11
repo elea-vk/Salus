@@ -83,9 +83,10 @@ const SommeilGraphique = () => {
         
 
         <View>
-           <Text style={styles.texte}>Moyenne de l'année:{stats.calculerMoyenneHeuresSommeilIntervalle("Annuel")} heures </Text> 
-           <Text style={styles.texte}>Moyenne du mois: {stats.calculerMoyenneHeuresSommeilIntervalle("Mensuel")} heures</Text>
-           <Text style = {styles.texte}>Moyenne des 7 dernières entrées: {stats.calculerMoyenneHeuresSommeilIntervalle("Hebdomadaire")} heures</Text>
+        <Text style={styles.texte}>MOYENNES</Text> 
+        <Text style={styles.texte}>➛ annuelle: {stats.calculerMoyenneHeuresSommeilIntervalle("Annuel")}h </Text> 
+        <Text style={styles.texte}>➛ mensuelle: {stats.calculerMoyenneHeuresSommeilIntervalle("Mensuel")}h</Text>
+        <Text style = {styles.texte}>➛ 7 dernières entrées: {stats.calculerMoyenneHeuresSommeilIntervalle("Hebdomadaire")}h</Text>
         </View>
         </View>
         

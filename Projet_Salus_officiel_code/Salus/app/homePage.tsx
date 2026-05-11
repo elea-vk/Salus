@@ -128,7 +128,7 @@ export default function Index() {
                 opacity: pressed ? 0.85 : 1,
               },
             ]}
-            onPress={() => router.push("/sommeiltest")}
+            onPress={() => router.push("/sommeilPage")}
           >
             <Ionicons
               name="moon-outline"

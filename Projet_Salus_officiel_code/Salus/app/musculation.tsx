@@ -816,6 +816,7 @@ export default function EcranMusculation() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.ecran}>
+        <View style={{ height: 25, backgroundColor: Couleurs.background }} />
         <ScrollView contentContainerStyle={styles.conteneur}>
           <Text style={styles.titre}>Musculation</Text>
 

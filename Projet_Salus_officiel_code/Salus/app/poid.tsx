@@ -723,6 +723,7 @@ export default function Poid() {
   return (
     <View style={styles.ecran}>
       <ScrollView contentContainerStyle={styles.conteneur}>
+        <View style={{ height: 25, backgroundColor: Couleurs.background }} />
         <Text style={styles.titre}>Poids</Text>
 
         {/* Onglets pour changer entre la page d'entrées et la page graphique. */}

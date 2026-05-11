@@ -498,6 +498,7 @@ export default function Alimentation() {
   return (
     <View style={styles.ecran}>
       <ScrollView contentContainerStyle={styles.conteneur}>
+        <View style={{ height: 25, backgroundColor: Couleurs.background }} />
         <Text style={styles.titre}>Alimentation</Text>
 
         {/* Barre d'onglets pour passer entre Journal et Calculateur */}
