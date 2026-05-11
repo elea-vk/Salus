@@ -1,3 +1,4 @@
+import Couleurs from "@/constantes/couleurs";
 // Importation des hooks React utilisés dans la page.
 // useEffect sert aux chargements/sauvegardes.
 // useMemo sert à recalculer certaines valeurs seulement quand les données changent.
@@ -970,7 +971,7 @@ export default function Poid() {
                         <Polyline
                           points={graphique.points}
                           fill="none"
-                          stroke="#ff6bdf"
+                          stroke={Couleurs.flash}
                           strokeWidth={3}
                         />
                       ) : null}
@@ -982,7 +983,7 @@ export default function Poid() {
                           cx={point.x}
                           cy={point.y}
                           r={5}
-                          fill="#ff6bdf"
+                          fill={Couleurs.flash}
                         />
                       ))}
 
@@ -1116,7 +1117,7 @@ export default function Poid() {
 const styles = StyleSheet.create({
   ecran: {
     flex: 1,
-    backgroundColor: "#e8c0d7",
+    backgroundColor: Couleurs.background,
   },
   conteneur: {
     padding: 16,
@@ -1144,8 +1145,8 @@ const styles = StyleSheet.create({
     borderColor: "#dcdcdc",
   },
   boutonOngletActif: {
-    backgroundColor: "#efb6d4",
-    borderColor: "#efb6d4",
+    backgroundColor: Couleurs.secondary,
+    borderColor: Couleurs.secondary,
   },
   texteOnglet: {
     fontSize: 16,
@@ -1167,7 +1168,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   grosNombre: {
-    color: "#ff6bdf",
+    color: Couleurs.flash,
     fontSize: 52,
     fontWeight: "900",
     marginTop: 8,
@@ -1206,7 +1207,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   boutonChoixActif: {
-    backgroundColor: "#efb6d4",
+    backgroundColor: Couleurs.secondary,
   },
   texteChoix: {
     color: "#333",
@@ -1269,7 +1270,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   optionDateActive: {
-    backgroundColor: "#efb6d4",
+    backgroundColor: Couleurs.secondary,
   },
   texteOptionDate: {
     fontWeight: "700",
