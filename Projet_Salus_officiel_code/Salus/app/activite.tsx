@@ -116,8 +116,8 @@ export default function Activite() {
       <View style={styles.separateur}/>
       
       {/* Bouton ajout d'activité  */ }
-      <Pressable style={styles.boutonGestionActivite} onPress={()=>openSheet()}>
-        <Text style={styles.texteBoutonAjout}> Gérer les activités  </Text>
+      <Pressable style={styles.boutonAnnuler} onPress={()=>openSheet()}>
+        <Text style={styles.texteBoutonAnnuler}> Gérer les activités  </Text>
           
       </Pressable>
 
@@ -211,13 +211,13 @@ export default function Activite() {
         </View>
 
         <View style={styles.containerBoutonAjouter}>
-          <Pressable style={styles.boutonAjoutActivite} onPress={()=>{ajouter();
+          <Pressable style={styles.boutonAnnuler} onPress={()=>{ajouter();
             closeSheet();}}>
-           <Text style={styles.texteBoutonAjout}>Ajouter</Text>
+           <Text style={styles.texteBoutonAnnuler}>Ajouter</Text>
           
           </Pressable>
-          <Pressable style={styles.boutonAjoutActivite} onPress={()=>{supprimer();closeSheet();}}>
-           <Text style={styles.texteBoutonAjout}>Supprimer tout</Text>
+          <Pressable style={styles.boutonAnnuler} onPress={()=>{supprimer();closeSheet();}}>
+           <Text style={styles.texteBoutonAnnuler}>Supprimer tout</Text>
           
           </Pressable>
         </View>
@@ -307,14 +307,12 @@ const styles=StyleSheet.create({
     backgroundColor:Couleurs.secondary,
     width:300,
     maxHeight:90,
-    justifyContent:"center",
-    alignItems:"center",
-    borderRadius:12,
-    elevation: 4,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    marginVertical:10
+    
+    paddingVertical:8,
+   paddingHorizontal: 14,
+   borderRadius: 12,
+    
+    
 
   
   },
@@ -322,7 +320,7 @@ const styles=StyleSheet.create({
     fontSize:30,
     paddingVertical:40,
     color:Couleurs.lightText,
-    fontWeight:"200",
+    
     
 
 
@@ -358,6 +356,8 @@ const styles=StyleSheet.create({
    paddingVertical:8,
    paddingHorizontal: 14,
    borderRadius: 12,
+   borderColor:Couleurs.darkText,
+
    
   },
   texteBoutonAnnuler:{
@@ -373,10 +373,10 @@ const styles=StyleSheet.create({
   },
   textInputNomActivite:{
     flex:1,
-    fontSize:22,
+    fontSize:15,
     marginBottom:10,
     borderWidth:1,
-    maxHeight:40,
+    maxHeight:60,
     maxWidth:300,
     color:Couleurs.darkText,
     borderColor:Couleurs.darkText
@@ -424,10 +424,10 @@ const styles=StyleSheet.create({
  },
  textInputDuree:{
     flex:1,
-    fontSize:22,
+    fontSize:20,
     marginBottom:10,
     borderWidth:1,
-    maxHeight:40,
+    maxHeight:50,
     maxWidth:100,
     color:Couleurs.darkText,
     borderColor:Couleurs.darkText
@@ -449,7 +449,7 @@ const styles=StyleSheet.create({
   alignSelf:"center",
   alignItems:"center",
   justifyContent:"center",
-  backgroundColor:"#f6f6f6",
+  
   borderRadius:12,
   width:"90%",
   maxHeight:150,
