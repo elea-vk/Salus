@@ -2,15 +2,19 @@ import React, { useEffect, useState,useRef } from "react"
 import { View, Text, TextInput, StyleSheet, Pressable } from "react-native"
 import { DateTimeSpinner } from "react-native-date-time-spinner"
 import { LinearGradient } from "expo-linear-gradient"
-import {ajouterUtilisateur, initDatabase, modifierDateDeNaissance,getUtilisateur,modifierPrenom,getDernierSuivi,ajouterMesure,modifierSexe} from "@/data/dataAPP"
+import {initDatabase, modifierDateDeNaissance,getUtilisateur,modifierPrenom,getDernierSuivi,ajouterMesure,modifierSexe} from "@/data/dataAPP"
 import { Picker } from '@react-native-picker/picker'
-import { SexeUtilisateur, Utilisateur } from "@/src/utilisateur"
+import {Utilisateur } from "@/src/utilisateur"
 import { ScrollView } from "react-native"
-import { SexeBiologique } from "@/src/sexeBiologique"
+
 
 
 export default function PageUtilisateur() {
-  const [db, setDb] = useState<any>(null);
+
+  //constantes utilisées dans l'affichage graphique :
+
+  const [db, setDb] = useState<any>(null); //la database
+
   const [utilisateurObj, setUtilisateurObj] = useState<Utilisateur | null>(null);
 
   const [nom, setNom] = useState("")
@@ -38,7 +42,8 @@ export default function PageUtilisateur() {
   
 
 
-  //////
+  //ouverture de la database
+
   useEffect(() => {
     async function init() {
       const database = await initDatabase()
@@ -46,8 +51,10 @@ export default function PageUtilisateur() {
 
       const utilisateur = await getUtilisateur(database,1)
       const suivi = await getDernierSuivi(database,1)
+
+
       if (utilisateur) {
-        const user = new Utilisateur(utilisateur.prenom,new Date(utilisateur.dateDeNaissance),utilisateur.sexe,utilisateur.id)
+        const user = new Utilisateur(utilisateur.prenom,new Date(utilisateur.dateDeNaissance),utilisateur.sexe,utilisateur.id) //création d'un utilisateur à partir des infos de la db
         setUtilisateurObj(user);
         setNom(utilisateur.prenom || "")
         setSexe(utilisateur.sexe || "")
@@ -63,50 +70,47 @@ export default function PageUtilisateur() {
   init();}, 
   []);
 
-  
+//méthode pour sauvegarder les informations actualisées de l'utilisateur
+
 const sauvegarderUtilisateur = async () => {
   if (!db) return;
 
   try {
-    const dateUtil =
-      datedeNaissance instanceof Date && !isNaN(datedeNaissance.getTime())
-        ? datedeNaissance.toISOString().split("T")[0]
-        : new Date().toISOString().split("T")[0];
+    const dateUtil = datedeNaissance instanceof Date && !isNaN(datedeNaissance.getTime())? datedeNaissance.toISOString().split("T")[0]: new Date().toISOString().split("T")[0];
 
-    // ⚡ UPDATE DB (fire and wait)
     await Promise.all([
       modifierPrenom(db, 1, nom),
       modifierSexe(db, 1, sexe),
       modifierDateDeNaissance(db, 1, dateUtil),
     ]);
 
-    // ⚡ DB est mise à jour, mais UI ne dépend PLUS de DB ici
-    console.log("SAVE OK");
+    //console.log("SAVE OK");
 
     // (optionnel debug)
-    console.log({
+    /*console.log({
       nom,
       sexe,
       dateUtil,
-    });
+    });*/
+
   } catch (e) {
     console.log("SAVE ERROR:", e);
   }
 };
 
 
-  ////
+  //affichage graphique
     return (
       <View>
   <ScrollView contentContainerStyle={styles.container}>
-    <Text style={styles.title}>Profil utilisateur</Text>
+    <Text style={styles.titre}>Profil utilisateur</Text>
 
     {/* PRÉNOM */}
-    <View style={styles.card}>
-      <View style={styles.rowHeader}>
+    <View style={styles.sousboite}>
+      <View style={styles.enTete}>
         <Text style={styles.label}>Prénom</Text>
         <Pressable onPress={() => setEditerNom(!editerNom)}>
-          <Text style={styles.icon}>⚙️</Text>
+          <Text style={styles.icone}>⚙️</Text>
         </Pressable>
       </View>
 
@@ -118,36 +122,36 @@ const sauvegarderUtilisateur = async () => {
           placeholder="Entrez votre prénom"
         />
       ) : (
-        <Text style={styles.value}>{nom || "Aucun prénom"}</Text>
+        <Text style={styles.valeur}>{nom || "Aucun prénom"}</Text>
       )}
     </View>
 
     {/* DATE NAISSANCE */}
-    <View style={styles.card}>
-      <View style={styles.rowHeader}>
+    <View style={styles.sousboite}>
+      <View style={styles.enTete}>
         <Text style={styles.label}>Date de naissance</Text>
         <Pressable onPress={() => setMontrerSpinner(!montrerSpinner)}>
-          <Text style={styles.icon}>⚙️</Text>
+          <Text style={styles.icone}>⚙️</Text>
         </Pressable>
       </View>
 
       
 
-      <Text style={styles.value}>
+      <Text style={styles.valeur}>
         {datedeNaissance.toLocaleDateString("fr-FR")}
       </Text>
     </View>
 
-    <Text style={styles.subtitle}>
+    <Text style={styles.soustitre}>
       Âge : {utilisateurObj ? utilisateurObj.calculAge() : 0} ans
     </Text>
 
     {/* TAILLE */}
-    <View style={styles.card}>
-      <View style={styles.rowHeader}>
+    <View style={styles.sousboite}>
+      <View style={styles.enTete}>
         <Text style={styles.label}>Taille</Text>
         <Pressable onPress={() => setEditerTaille(!editerTaille)}>
-          <Text style={styles.icon}>⚙️</Text>
+          <Text style={styles.icone}>⚙️</Text>
         </Pressable>
       </View>
 
@@ -159,16 +163,16 @@ const sauvegarderUtilisateur = async () => {
           keyboardType="numeric"
         />
       ) : (
-        <Text style={styles.value}>{taille || "Non renseignée"}</Text>
+        <Text style={styles.valeur}>{taille || "Non renseignée"}</Text>
       )}
     </View>
 
-    {/* POIDS */}
-    <View style={styles.card}>
-      <View style={styles.rowHeader}>
+    {/* POIDS  : pas utilisé au final mais aurait dû être connecté à la database suivi*/}
+    <View style={styles.sousboite}>
+      <View style={styles.enTete}>
         <Text style={styles.label}>Poids</Text>
         <Pressable onPress={() => setEditerPoids(!editerPoids)}>
-          <Text style={styles.icon}>⚙️</Text>
+          <Text style={styles.icone}>⚙️</Text>
         </Pressable>
       </View>
 
@@ -180,20 +184,20 @@ const sauvegarderUtilisateur = async () => {
           keyboardType="numeric"
         />
       ) : (
-        <Text style={styles.value}>{poids || "Non renseigné"}</Text>
+        <Text style={styles.valeur}>{poids || "Non renseigné"}</Text>
       )}
     </View>
 
     {/* SEXE */}
-    <View style={styles.card}>
-      <View style={styles.rowHeader}>
+    <View style={styles.sousboite}>
+      <View style={styles.enTete}>
         <Text style={styles.label}>Sexe</Text>
         <View style={{ flexDirection: "row" }}>
           <Pressable onPress={() => setMontrerInfo(!montrerInfo)}>
             <Text style={{ marginRight: 12 }}>💡</Text>
           </Pressable>
           <Pressable onPress={() => setEditerSexe(!editerSexe)}>
-            <Text style={styles.icon}>⚙️</Text>
+            <Text style={styles.icone}>⚙️</Text>
           </Pressable>
         </View>
       </View>
@@ -208,17 +212,17 @@ const sauvegarderUtilisateur = async () => {
           <Picker.Item label="Homme" value="Homme" />
         </Picker>
       ) : (
-        <Text style={styles.value}>{sexe || "Non renseigné"}</Text>
+        <Text style={styles.valeur}>{sexe || "Non renseigné"}</Text>
       )}
     </View>
     
     
-    <View style={styles.card}>
-      <View style={styles.rowHeader}>
+    <View style={styles.sousboite}>
+      <View style={styles.enTete}>
           <Text style={styles.label}>Niveau actif</Text>
           <View style={{ flexDirection: "row" }}>
             <Pressable onPress={() => setEditerActPhys(!editerNiveauActPhys)}>
-              <Text style={styles.icon}>⚙️</Text>
+              <Text style={styles.icone}>⚙️</Text>
             </Pressable>
           </View>
       </View>
@@ -230,42 +234,32 @@ const sauvegarderUtilisateur = async () => {
             <Picker.Item label="Très actif" value="3" />
           </Picker>
         ) : (
-          <Text style={styles.value}>{niveauActPhys || "Non renseigné"}</Text>
+          <Text style={styles.valeur}>{niveauActPhys || "Non renseigné"}</Text>
         )}
     </View>
 
     {/* SAUVEGARDE */}
-    <Pressable style={styles.saveButton} 
+    <Pressable style={styles.sauvegarderBouton} 
     onPress={() => {
     sauvegarderUtilisateur()
   }}>
-      <Text style={styles.saveText}>Sauvegarder</Text>
+      <Text style={styles.sauvegarderTexte}>Sauvegarder</Text>
     </Pressable>
-    <Pressable style={[styles.saveButton, { backgroundColor: "#444" }]}
-            onPress={async () => {
-              if (!db) return;
-              const user = await getUtilisateur(db, 1);
-              const suivi = await getDernierSuivi(db, 1);
-              console.log("🧠 DB USER:", user);
-              console.log("📊 DB SUIVI:", suivi);
-            }}
-            >
-              <Text style={styles.saveText}>Vérifier DB</Text>
-              </Pressable>
-
-
   </ScrollView>
 
+  {/*affichage de la roue de choix de la date de naissance en dehors du scrollview, sinon ça apportait un bug */}
+
   {montrerSpinner && (
-    <View style={styles.overlay}>
-        <View style={styles.spinnerBox}>
+    <View style={styles.auDessus}>
+        <View style={styles.boiteSpinner}>
           <DateTimeSpinner
             mode="date"
             dateTimeOrder={["date"]}
             minDate={new Date("1920-01-01")}
             maxDate={new Date()}
             onDateChange={(value) => {
-              const newDate = value?.date ?? value ?? new Date()
+              {/*permet d'éviter les bugs de date : soit on prend la valeur déjà donnée soit on met la date d'auourd'hui */}
+              const newDate = value?.date ?? value ?? new Date() 
               setTempDate(newDate)
             }}
             LinearGradient={LinearGradient}
@@ -277,9 +271,9 @@ const sauvegarderUtilisateur = async () => {
               setDateDeNaissance(tempDate)
               setMontrerSpinner(false)
             }}
-            style={styles.button}
+            style={styles.bouton}
           >
-            <Text style={styles.buttonText}>Valider</Text>
+            <Text style={styles.boutonTexte}>Valider</Text>
           </Pressable>
         </View>
       </View>
@@ -296,7 +290,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#cab5ce",
     flexGrow: 1,
   },
-  overlay: {
+  auDessus: {
   position: "absolute",
   top: 0,
   left: 0,
@@ -306,21 +300,21 @@ const styles = StyleSheet.create({
   justifyContent: "center",
   alignItems: "center",
 },
-spinnerBox: {
+boiteSpinner: {
   backgroundColor: "#cab5ce",
   padding: 20,
   borderRadius: 16,
   width: "85%",
 },
 
-  title: {
+  titre: {
     fontSize: 28,
     fontWeight: "700",
     marginBottom: 20,
     color : "#3f2346"
   },
 
-  subtitle: {
+  soustitre: {
     marginVertical: 10,
     fontSize: 16,
     fontWeight: "600",
@@ -334,7 +328,7 @@ spinnerBox: {
     marginTop: 10,
   },
 
-  card: {
+  sousboite: {
     backgroundColor: "#7d6b80",
     borderRadius: 16,
     padding: 16,
@@ -345,7 +339,7 @@ spinnerBox: {
     elevation: 2,
   },
 
-  rowHeader: {
+  enTete: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -358,11 +352,11 @@ spinnerBox: {
     color : "#403352"
   },
 
-  icon: {
+  icone: {
     fontSize: 18,
   },
 
-  value: {
+  valeur: {
     fontSize: 15,
     color: "#281a38",
   },
@@ -383,7 +377,7 @@ spinnerBox: {
 
 
 
-  button: {
+  bouton: {
     marginTop: 5,
     backgroundColor: "#7C5CFF",
     padding: 10,
@@ -391,12 +385,12 @@ spinnerBox: {
     alignItems: "center",
   },
 
-  buttonText: {
+  boutonTexte: {
     color: "white",
     fontWeight: "600",
   },
 
-  saveButton: {
+  sauvegarderBouton: {
     marginTop: 20,
     backgroundColor: "#90809b",
     padding: 14,
@@ -404,7 +398,7 @@ spinnerBox: {
     alignItems: "center",
   },
 
-  saveText: {
+  sauvegarderTexte: {
     color: "white",
     fontWeight: "700",
     fontSize: 16,
