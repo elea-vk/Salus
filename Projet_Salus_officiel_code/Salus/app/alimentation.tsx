@@ -10,6 +10,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Svg, { Circle } from "react-native-svg";
+import Couleurs from "@/constantes/couleurs";
 
 // -------------------------
 // Types
@@ -265,7 +266,7 @@ function CercleProgression({
   sousTitre,
   taille = 170,
   epaisseur = 18,
-  couleur = "#ff6bdf",
+  couleur = Couleurs.flash,
 }: CercleProgressionProps) {
   // Rayon du cercle selon la taille et l'épaisseur.
   const rayon = (taille - epaisseur) / 2;
@@ -290,7 +291,7 @@ function CercleProgression({
           cx={taille / 2}
           cy={taille / 2}
           r={rayon}
-          stroke="#5a1450"
+          stroke="#998cfe49"
           strokeWidth={epaisseur}
           fill="none"
         />
@@ -300,7 +301,7 @@ function CercleProgression({
           cx={taille / 2}
           cy={taille / 2}
           r={rayon}
-          stroke={depassement ? "#ff6bdf" : couleur}
+          stroke={depassement ? Couleurs.flash : couleur}
           strokeWidth={epaisseur}
           fill="none"
           strokeDasharray={`${circonference} ${circonference}`}
@@ -545,7 +546,7 @@ export default function Alimentation() {
                     titre="glucides"
                     taille={90}
                     epaisseur={8}
-                    couleur="#ff6bdf"
+                    couleur={Couleurs.flash}
                   />
                   <Text style={styles.texteValeurPetit}>{arrondir(totaux.glucides)} g</Text>
                 </View>
@@ -557,7 +558,7 @@ export default function Alimentation() {
                     titre="protéines"
                     taille={90}
                     epaisseur={8}
-                    couleur="#ff6bdf"
+                    couleur={Couleurs.flash}
                   />
                   <Text style={styles.texteValeurPetit}>{arrondir(totaux.proteines)} g</Text>
                 </View>
@@ -569,7 +570,7 @@ export default function Alimentation() {
                     titre="lipides"
                     taille={90}
                     epaisseur={8}
-                    couleur="#bf6be6"
+                    couleur={Couleurs.flash}
                   />
                   <Text style={styles.texteValeurPetit}>{arrondir(totaux.lipides)} g</Text>
                 </View>
@@ -585,7 +586,7 @@ export default function Alimentation() {
                 sousTitre="kcal"
                 taille={240}
                 epaisseur={24}
-                couleur="#ff6bdf"
+                couleur={Couleurs.flash}
               />
               <Text style={styles.texteStatutCalories}>{statutCalories}</Text>
             </View>
@@ -946,7 +947,7 @@ export default function Alimentation() {
 const styles = StyleSheet.create({
   ecran: {
     flex: 1,
-    backgroundColor: "#e8c0d7",
+    backgroundColor: Couleurs.background,
   },
   conteneur: {
     padding: 16,
@@ -975,8 +976,8 @@ const styles = StyleSheet.create({
     borderColor: "#dcdcdc",
   },
   boutonOngletHautActif: {
-    backgroundColor: "#efb6d4",
-    borderColor: "#efb6d4",
+    backgroundColor: Couleurs.secondary,
+    borderColor: Couleurs.secondary ,
   },
   texteOngletHaut: {
     fontSize: 16,
@@ -1004,7 +1005,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   grosNombreBleu: {
-    color: "#ff6bdf",
+    color: Couleurs.flash,
     fontSize: 56,
     fontWeight: "900",
     lineHeight: 62,
@@ -1119,7 +1120,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   boutonChoixActif: {
-    backgroundColor: "#efb6d4",
+    backgroundColor: Couleurs.secondary,
   },
   texteChoix: {
     color: "#333",
@@ -1316,7 +1317,7 @@ const styles = StyleSheet.create({
     color: "#444",
   },
   boutonAppliquer: {
-    backgroundColor: "#efb6d4",
+    backgroundColor: Couleurs.secondary,
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 12,

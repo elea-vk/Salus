@@ -59,14 +59,14 @@ const SommeilGraphique = () => {
         </Picker>
         <Text>Moyenne : {intervalle}</Text>
         <LineChart
-            color1="#c96675"
-            dataPointsColor1="#630f1a"
+            color1={Couleurs.secondary}
+            dataPointsColor1={Couleurs.darkText}
             data={donnee}
             spacing1={50}
             thickness1={4}
             hideRules
-            yAxisColor={"#630f1a"}
-            xAxisColor={"#630f1a"}
+            yAxisColor={Couleurs.darkText}
+            xAxisColor={Couleurs.darkText}
             yAxisThickness={3}
             
             xAxisThickness={3}
@@ -95,7 +95,7 @@ const SommeilGraphique = () => {
 const styles = StyleSheet.create({
     container: {
     flex: 1,
-    backgroundColor:'#e8c0d7',
+    backgroundColor:Couleurs.background,
     gap:16,
     justifyContent: 'center',
     alignItems: 'center',

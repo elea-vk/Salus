@@ -2,7 +2,7 @@ import { View, Text, StyleSheet,Pressable, Modal, TextInput, ScrollView ,Dimensi
 import {useEffect, useState,useRef } from "react";
 
 import Couleurs from "@/constantes/couleurs";
-import { ajouterActivite, initDatabase, recupererToutesActivites } from "@/data/dataAPP";
+import { ajouterActivite, initDatabase, recupererToutesActivites, supprimerToutesActivites } from "@/data/dataAPP";
 import {DateTimeSpinner} from "react-native-date-time-spinner";
 
 import { LinearGradient } from "expo-linear-gradient";
@@ -49,6 +49,12 @@ export default function Activite() {
       const toutes = await recupererToutesActivites(db);
       setActiviteListe(toutes);
     }
+    const supprimer = async()=>{
+      if(!db) return
+
+      await supprimerToutesActivites(db);
+      setActiviteListe([]);
+    }
     const openSheet = () => {
    
      isVisibiliteAjout(true);
@@ -88,6 +94,7 @@ export default function Activite() {
   
   
   return (
+    
     <View style={styles.container}>
       <Text style={styles.titre}> -Activité- </Text>
       <View style={styles.separateur}/>
@@ -204,8 +211,13 @@ export default function Activite() {
         </View>
 
         <View style={styles.containerBoutonAjouter}>
-          <Pressable style={styles.boutonAjoutActivite} onPress={ajouter}>
-           <Text style={styles.texteBoutonAjout}> Ajouter  </Text>
+          <Pressable style={styles.boutonAjoutActivite} onPress={()=>{ajouter();
+            closeSheet();}}>
+           <Text style={styles.texteBoutonAjout}>Ajouter</Text>
+          
+          </Pressable>
+          <Pressable style={styles.boutonAjoutActivite} onPress={()=>{supprimer();closeSheet();}}>
+           <Text style={styles.texteBoutonAjout}>Supprimer tout</Text>
           
           </Pressable>
         </View>
@@ -433,6 +445,7 @@ const styles=StyleSheet.create({
   },
   containerBoutonAjouter:{
     flex:1,
+    flexDirection:"row",
   alignSelf:"center",
   alignItems:"center",
   justifyContent:"center",

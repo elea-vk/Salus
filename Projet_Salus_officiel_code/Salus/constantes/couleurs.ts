@@ -5,6 +5,7 @@ const Couleurs = {
   darkText: "#393665",
   lightText: "#ffffff",
   accent: "#2c3c57",
+  flash: "#9a8cfe",
 };
 
 export default Couleurs;

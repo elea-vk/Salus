@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Couleurs from "@/constantes/couleurs";
 import {
   View,
   Text,
@@ -1348,7 +1349,7 @@ export default function EcranMusculation() {
 const styles = StyleSheet.create({
   ecran: {
     flex: 1,
-    backgroundColor: "#e8c0d7",
+    backgroundColor: Couleurs.background,
   },
   conteneur: {
     padding: 16,
@@ -1378,8 +1379,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   boutonInterrupteurActif: {
-    backgroundColor: "#efb6d4",
-    borderColor: "#efb6d4",
+    backgroundColor: Couleurs.secondary,
+    borderColor: Couleurs.secondary,
   },
   texteInterrupteur: {
     fontSize: 16,
@@ -1572,7 +1573,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#efb6d4",
+    backgroundColor: Couleurs.secondary,
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 12,
@@ -1647,7 +1648,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   carteProgrammeSauvegardeActive: {
-    borderColor: "#efb6d4",
+    borderColor: Couleurs.secondary,
     backgroundColor: "#fff8fc",
   },
   titreProgrammeSauvegarde: {
@@ -1725,7 +1726,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   boutonOngletBasActif: {
-    backgroundColor: "#efb6d4",
+    backgroundColor: Couleurs.secondary,
   },
   texteOngletBas: {
     fontSize: 16,
