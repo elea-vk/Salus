@@ -47,6 +47,7 @@ const SommeilGraphique = () => {
   
     return (
         <View style = {styles.container}>
+            <Text style = {styles.titre}> Évolution de votre sommeil</Text>
             
        <Picker
             selectedValue={intervalle}
@@ -57,7 +58,7 @@ const SommeilGraphique = () => {
             <Picker.Item label="Annuel" value="Annuel" />
             <Picker.Item label="7 derniers jours" value="Hebdomadaire" />
         </Picker>
-        <Text>Moyenne : {intervalle}</Text>
+        <Text style={styles.texte}>Sommeil moyen : {intervalle}</Text>
         <LineChart
             color1={Couleurs.secondary}
             dataPointsColor1={Couleurs.darkText}
@@ -75,16 +76,16 @@ const SommeilGraphique = () => {
             backgroundColor={Couleurs.lightText}
             showReferenceLine1
             referenceLine1Position={moyenne !== null ? moyenne : 0}
-            referenceLine1Config={{color:Couleurs.darkText,thickness:3,labelText:"Moyenne",dashWidth:Dimensions.get("screen").width-10}}/>
+            referenceLine1Config={{color:Couleurs.darkText,thickness:3,labelText:"Moyenne", labelTextStyle:styles.texte,dashWidth:Dimensions.get("screen").width-10}}/>
             
             
         
         
 
         <View>
-           <Text>Moyenne de l'année:{stats.calculerMoyenneHeuresSommeilIntervalle("Annuel")} </Text> 
-           <Text>Moyenne du mois: {stats.calculerMoyenneHeuresSommeilIntervalle("Mensuel")}</Text>
-           <Text>Moyenne des 7 dernières entrées: {stats.calculerMoyenneHeuresSommeilIntervalle("Hebdomadaire")}</Text>
+           <Text style={styles.texte}>Moyenne de l'année:{stats.calculerMoyenneHeuresSommeilIntervalle("Annuel")} heures </Text> 
+           <Text style={styles.texte}>Moyenne du mois: {stats.calculerMoyenneHeuresSommeilIntervalle("Mensuel")} heures</Text>
+           <Text style = {styles.texte}>Moyenne des 7 dernières entrées: {stats.calculerMoyenneHeuresSommeilIntervalle("Hebdomadaire")} heures</Text>
         </View>
         </View>
         
@@ -99,7 +100,17 @@ const styles = StyleSheet.create({
     gap:16,
     justifyContent: 'center',
     alignItems: 'center',
+    },titre:{
+        color:Couleurs.darkText,
+        fontSize:30,
+        fontWeight:300,
+
     },
+    texte:{
+      color:Couleurs.darkText,
+        fontSize:20,
+        fontWeight:300,  
+    }
 }) 
 
 
