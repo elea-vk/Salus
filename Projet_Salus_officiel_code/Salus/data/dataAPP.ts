@@ -1,18 +1,20 @@
 import * as SQLite from 'expo-sqlite';
 
-let dbInstance: any = null;
+//pour appeler les différentes actions dans les db : https://www.w3schools.com/sql/sql_delete.asp
 
-let dbPromise: Promise<any> | null = null;
+
+let dbPromise: Promise<any> | null = null; //ouverture future de la db, considérée comme null tant qu'elle n'est pas ouverte
 
 export function initDatabase() {
-  if (!dbPromise) {
+
+  if (!dbPromise) { //si pas de db
     dbPromise = (async () => {
-      const db = await SQLite.openDatabaseAsync("app.db");
+      const db = await SQLite.openDatabaseAsync("app.db"); //création de la db app.db
     
-      await db.execAsync(`PRAGMA foreign_keys = ON;`);
+      await db.execAsync(`PRAGMA foreign_keys = ON;`); //pour protéger la db
     
 
- 
+    //création de différentes tables
       await db.execAsync(`
     CREATE TABLE IF NOT EXISTS utilisateur(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
