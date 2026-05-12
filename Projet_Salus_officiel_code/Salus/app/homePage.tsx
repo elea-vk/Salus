@@ -3,7 +3,6 @@ import { View, Pressable, Text, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import Couleurs from "../constantes/couleurs";
 
 export default function Index() {
@@ -77,7 +76,7 @@ export default function Index() {
                 opacity: pressed ? 0.85 : 1,
               },
             ]}
-            onPress={() => router.push("/poid")}
+            onPress={() => router.push("/poids")}
           >
             <Ionicons
               name="scale-outline"
