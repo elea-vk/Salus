@@ -883,7 +883,7 @@ export default function Poid() {
             <View style={styles.carteSection}>
               <Text style={styles.titreSection}>Graphique</Text>
               <Text style={styles.sousTexte}>
-                Ligne rose : poids réel. Ligne blanche : tendance. Ligne pointillée :
+                Ligne mauve : poids réel. Ligne blanche : tendance. Ligne pointillée :
                 objectif.
               </Text>
 

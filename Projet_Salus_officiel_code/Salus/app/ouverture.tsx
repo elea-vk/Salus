@@ -2,7 +2,6 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { router } from "expo-router";
 import Couleurs from "../constantes/couleurs";
 import React, { useEffect } from "react";
-
 import {
   ajouterUtilisateur,
   getUtilisateur,
@@ -12,31 +11,22 @@ import {
 export default function Ouverture() {
 
   const [db, setDb] = React.useState<any>(null);
-
-  useEffect(() => {
-    const init = async () => {
-      const database = await initDatabase();
-      setDb(database);
-    };
-
-    init();
-  }, []);
-
   const skipInscription = false;
 
+  // Gestion du bouton continuer
   const gererSuite = async () => {
     if (!db) return;
 
     const utilisateur = await getUtilisateur(db, 1);
 
     if (utilisateur?.id || skipInscription) {
-      router.replace("/homePage");
+      router.replace("/accueil");
     } else {
-      router.replace("/homePage");
+      router.replace("/accueil");
     }
   };
 
-  const devUtil = async () => {
+  const devUtilisateur = async () => {
     if (!db) return;
 
     let utilisateur = await getUtilisateur(db, 1);
@@ -52,26 +42,34 @@ export default function Ouverture() {
       utilisateur = await getUtilisateur(db, 1);
     }
 
-    router.replace("/homePage");
+    router.replace("/accueil");
   };
 
+  // OUVERTURE DE LA BASE DE DONNÉES
+  useEffect(() => {
+    const init = async () => {
+      const database = await initDatabase();
+      setDb(database);
+    };
+
+    init();
+  }, []);
+
   return (
-    <View style={styles.container}>
+    <View style={styles.conteneur}>
 
-      {/* TOP SPACE */}
-      <View style={styles.topSpacing} />
+      <View style={styles.espace} />
 
-      {/* TITLE */}
       <Text style={styles.titre}>
         ⊱ SALUS ⊰
       </Text>
 
-      <Text style={styles.subtitle}>
+      <Text style={styles.soustitre}>
         votre espace de bien-être
       </Text>
 
-      {/* BUTTONS */}
-      <View style={styles.buttonsContainer}>
+      {/* BOUTONS SUITE */}
+      <View style={styles.zoneBoutons}>
 
         <Pressable
           style={styles.boutonOuverture}
@@ -83,10 +81,10 @@ export default function Ouverture() {
         </Pressable>
 
         <Pressable
-          style={styles.secondaryButton}
-          onPress={() => devUtil()}
+          style={styles.boutonDev}
+          onPress={() => devUtilisateur()}
         >
-          <Text style={styles.secondaryButtonText}>
+          <Text style={styles.texteBoutonDev}>
             Se connecter comme dev
           </Text>
         </Pressable>
@@ -99,14 +97,14 @@ export default function Ouverture() {
 
 const styles = StyleSheet.create({
 
-  container: {
+  conteneur: {
     flex: 1,
     backgroundColor: Couleurs.background,
     paddingHorizontal: 28,
     alignItems: "center",
   },
 
-  topSpacing: {
+  espace: {
     height: 110,
   },
 
@@ -117,14 +115,14 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
 
-  subtitle: {
+  soustitre: {
     marginTop: 8,
     fontSize: 16,
     color: "#464452",
     marginBottom: 60,
   },
 
-  buttonsContainer: {
+  zoneBoutons: {
     width: "100%",
     gap: 18,
     alignItems: "center",
@@ -155,29 +153,23 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  secondaryButton: {
+  boutonDev: {
     width: "100%",
     backgroundColor: "white",
-
     paddingVertical: 18,
-
     borderRadius: 22,
-
     alignItems: "center",
     justifyContent: "center",
-
     borderWidth: 1,
     borderColor: "#e7e7e7",
-
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
-
     elevation: 4,
   },
 
-  secondaryButtonText: {
+  texteBoutonDev: {
     color: Couleurs.darkText,
     fontSize: 17,
     fontWeight: "600",

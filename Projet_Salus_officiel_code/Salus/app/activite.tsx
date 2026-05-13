@@ -1,3 +1,4 @@
+import Couleurs from "@/constantes/couleurs";
 import {
   View,
   Text,
@@ -9,53 +10,41 @@ import {
   Dimensions,
   Animated,
 } from "react-native";
-
+import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState, useRef } from "react";
-
-import Couleurs from "@/constantes/couleurs";
-
 import {
   ajouterActivite,
   initDatabase,
   recupererToutesActivites,
   supprimerToutesActivites,
+  supprimerActivite
 } from "@/data/dataAPP";
-
 import { DateTimeSpinner } from "react-native-date-time-spinner";
-
 import { LinearGradient } from "expo-linear-gradient";
-
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const SCREEN_HEIGHT = Dimensions.get("window").height;
+const ECRAN_HAUTEUR = Dimensions.get("window").height;
 
 export default function Activite() {
   const [db, setDb] = useState<any>(null);
-
   const [nomActivite, setNomActivite] = useState("");
   const [date, setDate] = useState(new Date());
-
   const [nbHeuresDuree, setNbHeuresDuree] = useState(0);
   const [nbMinutesDuree, setNbMinutesDuree] = useState(0);
+  const [visibiliteAjout, isVisibiliteAjout] =  useState(false);
+  const [activiteListe, setActiviteListe] = useState< any[] >([]);
 
-  const [visibiliteAjout, isVisibiliteAjout] =
-    useState(false);
-
-  const [activiteListe, setActiviteListe] = useState<
-    any[]
-  >([]);
-
-  const sheetTranslateY = useRef(
-    new Animated.Value(SCREEN_HEIGHT)
+  const panneauTranslationY = useRef(
+    new Animated.Value(ECRAN_HAUTEUR)
   ).current;
 
-  const backdropOpacity = useRef(
+  const diminuerOppaciteFond = useRef(
     new Animated.Value(0)
   ).current;
 
+  // OUVERTURE DE LA BASE DE DONNÉES
   useEffect(() => {
     async function init() {
       const database = await initDatabase();
@@ -71,6 +60,7 @@ export default function Activite() {
     init();
   }, []);
 
+  // Ajout d'une activité
   const ajouter = async () => {
     if (!db) return;
 
@@ -84,6 +74,7 @@ export default function Activite() {
     afficher();
   };
 
+  // Affichage des activités enregistrées
   const afficher = async () => {
     if (!db) return;
 
@@ -93,6 +84,7 @@ export default function Activite() {
     setActiviteListe(toutes);
   };
 
+  // Supprimer toutes les activités
   const supprimer = async () => {
     if (!db) return;
 
@@ -101,21 +93,34 @@ export default function Activite() {
     setActiviteListe([]);
   };
 
-  const openSheet = () => {
+  // Supprimer une seule activité
+  const supprimerUneActivite = async (
+    nom: string,
+    date: string
+  ) => {
+    if (!db) return;
+
+    await supprimerActivite(db, nom, date);
+
+    afficher();
+  };
+
+  // aide de l'IA pour les animations permettant d’ouvrir et fermer le panneau des activités (effet de fondu et glissement vers le haut)
+  const ouvrirPanneau = () => {
     isVisibiliteAjout(true);
 
-    backdropOpacity.setValue(0);
+    diminuerOppaciteFond.setValue(0);
 
-    sheetTranslateY.setValue(SCREEN_HEIGHT);
+    panneauTranslationY.setValue(ECRAN_HAUTEUR);
 
     Animated.parallel([
-      Animated.timing(backdropOpacity, {
+      Animated.timing(diminuerOppaciteFond, {
         toValue: 1,
         duration: 220,
         useNativeDriver: true,
       }),
 
-      Animated.spring(sheetTranslateY, {
+      Animated.spring(panneauTranslationY, {
         toValue: 0,
         friction: 9,
         tension: 70,
@@ -124,16 +129,16 @@ export default function Activite() {
     ]).start();
   };
 
-  const closeSheet = () => {
+  const fermerPanneau = () => {
     Animated.parallel([
-      Animated.timing(backdropOpacity, {
+      Animated.timing(diminuerOppaciteFond, {
         toValue: 0,
         duration: 180,
         useNativeDriver: true,
       }),
 
-      Animated.timing(sheetTranslateY, {
-        toValue: SCREEN_HEIGHT,
+      Animated.timing(panneauTranslationY, {
+        toValue: ECRAN_HAUTEUR,
         duration: 220,
         useNativeDriver: true,
       }),
@@ -142,272 +147,303 @@ export default function Activite() {
     });
   };
 
-  return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: Couleurs.secondary,
-      }}
-    >
-      <View style={styles.container}>
+return (
+  <SafeAreaView
+    style={{
+      flex: 1,
+      backgroundColor: Couleurs.secondary,
+    }}
+  >
+    <View style={styles.conteneur}>
 
-        {/* TITLE */}
-        <View style={styles.header}>
-          <Text style={styles.titre}>
-            ACTIVITÉS
+      {/* TITRE DE LA PAGE */}
+      <View style={styles.entete}>
+        <Text style={styles.titre}>
+          ACTIVITÉS
+        </Text>
+
+        <View style={styles.separateur} />
+      </View>
+
+      {/* BLOC AFFICHANT LES ACTIVITÉS ENREGISTRÉES */}
+      <View style={styles.blocActivites}>
+        <Text style={styles.titreBlocActivites}>
+          Activités à venir
+        </Text>
+
+        {activiteListe.length === 0 ? (
+          <Text style={styles.texteVide}>
+            Aucune activité prévue pour le moment
           </Text>
+        ) : (
 
-          <View style={styles.separateur} />
-        </View>
-
-        {/* CARD */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>
-            Activités à venir
-          </Text>
-
-          {activiteListe.length === 0 ? (
-            <Text style={styles.emptyText}>
-              Aucune activité prévue pour le moment
-            </Text>
-          ) : (
-            <ScrollView
-              style={styles.scrollViewStyle}
-              showsVerticalScrollIndicator={false}
-            >
-              {activiteListe.map((item, index) => (
-                <View
-                  key={index}
-                  style={styles.activityCard}
-                >
-                  <Text style={styles.activityName}>
+          <ScrollView
+            style={styles.scrollViewStyle}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* affichage des activités */}
+            {activiteListe.map((item, index) => (
+              <View
+                key={index}
+                style={styles.blocActivite}
+              >
+                
+                {/* rangée avec nom et bouton supprimer */}
+                <View style={styles.enteteActivite}>
+                  <Text style={styles.activiteNom}>
                     {item.nom}
                   </Text>
 
-                  <Text style={styles.activityDate}>
-                    {format(
-                      new Date(item.date),
-                      "EEEE d MMMM yyyy • HH:mm",
-                      { locale: fr }
-                    )}
-                  </Text>
-
-                  <Text style={styles.activityDuration}>
-                    {item.tempsActivite} minutes
-                  </Text>
-                </View>
-              ))}
-            </ScrollView>
-          )}
-        </View>
-
-        {/* BUTTON */}
-        <Pressable
-          style={styles.manageButton}
-          onPress={openSheet}
-        >
-          <Text style={styles.manageButtonText}>
-            Gérer les activités
-          </Text>
-        </Pressable>
-
-        {/* MODAL */}
-        <Modal
-          visible={visibiliteAjout}
-          transparent
-          animationType="none"
-        >
-          <View style={styles.modalRoot}>
-
-            <Animated.View
-              style={[
-                styles.backdrop,
-                {
-                  opacity: backdropOpacity,
-                },
-              ]}
-            >
-              <Pressable
-                style={StyleSheet.absoluteFill}
-                onPress={closeSheet}
-              />
-            </Animated.View>
-
-            <Animated.View
-              style={[
-                styles.sheet,
-                {
-                  transform: [
-                    {
-                      translateY: sheetTranslateY,
-                    },
-                  ],
-                },
-              ]}
-            >
-              <View
-                style={styles.containerMenuActivite}
-              >
-
-                <View style={styles.menuHeader}>
-                  <Text style={styles.textMenuActivite}>
-                    Gestion des activités
-                  </Text>
-
+                  {/* suppression d'une seule activité */}
                   <Pressable
-                    style={styles.closeButton}
-                    onPress={closeSheet}
+                    onPress={() =>
+                      supprimerUneActivite(
+                        item.nom,
+                        item.date
+                      )
+                    }
                   >
-                    <Text
-                      style={styles.closeButtonText}
-                    >
-                      Fermer
-                    </Text>
+                    <Ionicons
+                      name="trash-outline"
+                      size={22}
+                      color="#d9534f"
+                    />
                   </Pressable>
                 </View>
 
-                {/* NOM */}
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>
-                    Nom de l'activité
-                  </Text>
+                {/* date et heure */}
+                <Text style={styles.activiteDate}>
+                  {format(
+                    new Date(item.date),
+                    "EEEE d MMMM yyyy • HH:mm",
+                    { locale: fr }
+                  )}
+                </Text>
 
+                {/* durée */}
+                <Text style={styles.activiteDuree}>
+                  {item.tempsActivite} minutes
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+        )}
+      </View>
+
+      <Pressable
+        style={styles.boutonGestion}
+        onPress={ouvrirPanneau}
+      >
+        <Text style={styles.texteBoutonGestion}>
+          Gérer les activités
+        </Text>
+      </Pressable>
+
+      {/* FENÊTRE MODALE POUR AJOUTER UNE ACTIVITÉ (aide de l'IA pour cette section) */}
+      <Modal
+        visible={visibiliteAjout}
+        transparent
+        animationType="none"
+      >
+        <View style={styles.conteneurModale}>
+
+          <Animated.View
+            style={[
+              styles.fondAssombri,
+              {
+                opacity: diminuerOppaciteFond,
+              },
+            ]}
+          >
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={fermerPanneau}
+            />
+          </Animated.View>
+
+          {/* panneau animé qui glisse vers le haut */}
+          <Animated.View
+            style={[
+              styles.panneau,
+              {
+                transform: [
+                  {
+                    translateY: panneauTranslationY,
+                  },
+                ],
+              },
+            ]}
+          >
+            
+           {/* MENU DE GESTION */}
+            <View
+              style={styles.conteneurMenuGestion}
+            >
+              {/* en-tête du menu */}
+              <View style={styles.enteteMenuGestion}>
+                <Text style={styles.titreMenuGestion}>
+                  Gestion des activités
+                </Text>
+
+                {/* bouton pour fermer le menu */}
+                <Pressable
+                  style={styles.boutonFermer}
+                  onPress={fermerPanneau}
+                >
+                  <Text
+                    style={styles.texteBoutonFermer}
+                  >
+                    Fermer
+                  </Text>
+                </Pressable>
+              </View>
+
+              {/* champ pour le nom de l'activité */}
+              <View style={styles.conteneurEntree}>
+                <Text style={styles.titreChamp}>
+                  Nom de l'activité
+                </Text>
+
+                <TextInput
+                  style={styles.champTexte}
+                  placeholder="Ex: Jogging"
+                  placeholderTextColor="#888"
+                  onChangeText={setNomActivite}
+                />
+              </View>
+
+              {/* SÉLECTION DE LA DATE ET DE L'HEURE DE DÉBUT */}
+              <View style={styles.conteneurSpinner}>
+                <Text style={styles.titreChamp}>
+                  Planifier une activité
+                </Text>
+
+                <DateTimeSpinner
+                  mode="datetime"
+                  dateTimeOrder={[
+                    "date",
+                    "hour",
+                    "minute",
+                  ]}
+                  dateTimeSpacing={16}
+                  styles={{
+                    backgroundColor: "#f6f6f6",
+                  }}
+            
+                  minDate={new Date(2025, 0, 1)}
+                  maxDate={new Date(2030, 11, 31)}
+                  padHourWithZero
+                  padMinuteWithZero
+                  LinearGradient={LinearGradient}
+                  pickerGradientOverlayProps={{
+                    locations: [0, 0.5, 0.5, 1],
+                  }}
+                  timeSeparator=":"
+                  onDateChange={({ date }) =>
+                    setDate(date)
+                  }
+                />
+              </View>
+
+              {/* CHOIX DE LA DURÉE */}
+              <View style={styles.dureeBox}>
+                <Text style={styles.titreChamp}>
+                  Durée
+                </Text>
+
+                <View
+                  style={styles.conteneurSelectionDuree}
+                >
+                  {/* nombre d'heures */}
                   <TextInput
-                    style={styles.textInput}
-                    placeholder="Ex: Jogging"
-                    placeholderTextColor="#888"
-                    onChangeText={setNomActivite}
-                  />
-                </View>
-
-                {/* DATE */}
-                <View style={styles.spinnerContainer}>
-                  <Text style={styles.label}>
-                    Planifier une activité
-                  </Text>
-
-                  <DateTimeSpinner
-                    mode="datetime"
-                    dateTimeOrder={[
-                      "date",
-                      "hour",
-                      "minute",
-                    ]}
-                    dateTimeSpacing={16}
-                    styles={{
-                      backgroundColor: "#f6f6f6",
-                    }}
-              
-                    minDate={new Date(2025, 0, 1)}
-                    maxDate={new Date(2030, 11, 31)}
-                    padHourWithZero
-                    padMinuteWithZero
-                    LinearGradient={LinearGradient}
-                    pickerGradientOverlayProps={{
-                      locations: [0, 0.5, 0.5, 1],
-                    }}
-                    timeSeparator=":"
-                    onDateChange={({ date }) =>
-                      setDate(date)
+                    keyboardType="numeric"
+                    style={styles.champDuree}
+                    placeholder="1"
+                    textAlign="center"
+                    onChangeText={(duree) =>
+                      setNbHeuresDuree(
+                        Number(duree)
+                      )
                     }
                   />
-                </View>
 
-                {/* DURÉE */}
-                <View style={styles.durationBox}>
-                  <Text style={styles.label}>
-                    Durée
+                  <Text style={styles.texteDuree}>
+                    heure(s)
                   </Text>
 
-                  <View
-                    style={styles.containerSelectionDuree}
-                  >
-                    <TextInput
-                      keyboardType="numeric"
-                      style={styles.textInputDuree}
-                      placeholder="1"
-                      textAlign="center"
-                      onChangeText={(duree) =>
-                        setNbHeuresDuree(
-                          Number(duree)
-                        )
-                      }
-                    />
+                  {/* nombre de minutes */}
+                  <TextInput
+                    keyboardType="numeric"
+                    style={styles.champDuree}
+                    placeholder="30"
+                    textAlign="center"
+                    onChangeText={(duree) =>
+                      setNbMinutesDuree(
+                        Number(duree)
+                      )
+                    }
+                  />
 
-                    <Text style={styles.durationText}>
-                      heure(s)
-                    </Text>
-
-                    <TextInput
-                      keyboardType="numeric"
-                      style={styles.textInputDuree}
-                      placeholder="30"
-                      textAlign="center"
-                      onChangeText={(duree) =>
-                        setNbMinutesDuree(
-                          Number(duree)
-                        )
-                      }
-                    />
-
-                    <Text style={styles.durationText}>
-                      minute(s)
-                    </Text>
-                  </View>
+                  <Text style={styles.texteDuree}>
+                    minute(s)
+                  </Text>
                 </View>
-
-                {/* BUTTONS */}
-                <View
-                  style={styles.containerBoutonAjouter}
-                >
-                  <Pressable
-                    style={styles.addButton}
-                    onPress={() => {
-                      ajouter();
-                      closeSheet();
-                    }}
-                  >
-                    <Text
-                      style={styles.addButtonText}
-                    >
-                      Ajouter
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    style={styles.deleteButton}
-                    onPress={() => {
-                      supprimer();
-                      closeSheet();
-                    }}
-                  >
-                    <Text
-                      style={styles.deleteButtonText}
-                    >
-                      Supprimer tout
-                    </Text>
-                  </Pressable>
-                </View>
-
               </View>
-            </Animated.View>
 
-          </View>
-        </Modal>
+              {/* BOUTONS D'ACTION */}
+              <View
+                style={styles.conteneurBoutons}
+              >
+                {/* ajoute une activité */}
+                <Pressable
+                  style={styles.boutonAjouter}
+                  onPress={() => {
+                    ajouter();
+                    fermerPanneau();
+                  }}
+                >
+                  <Text
+                    style={styles.texteBoutonAjouter}
+                  >
+                    Ajouter
+                  </Text>
+                </Pressable>
 
-      </View>
-    </SafeAreaView>
-  );
+                {/* supprime toutes les activités */}
+                <Pressable
+                  style={styles.boutonEffacer}
+                  onPress={() => {
+                    supprimer();
+                    fermerPanneau();
+                  }}
+                >
+                  <Text
+                    style={styles.texteBoutonEffacer}
+                  >
+                    Supprimer tout
+                  </Text>
+                </Pressable>
+              </View>
+
+            </View>
+          </Animated.View>
+
+        </View>
+      </Modal>
+
+    </View>
+  </SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({
-  container: {
+  conteneur: {
     flex: 1,
     backgroundColor: Couleurs.background,
     padding: 20,
   },
 
-  header: {
+  entete: {
     alignItems: "center",
     marginTop: 10,
     marginBottom: 20,
@@ -428,27 +464,25 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
 
-  card: {
+  blocActivites: {
     backgroundColor: "white",
     borderRadius: 22,
     padding: 18,
-
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 10,
-
     elevation: 5,
   },
 
-  cardTitle: {
+  titreBlocActivites: {
     fontSize: 22,
     fontWeight: "700",
     color: Couleurs.darkText,
     marginBottom: 15,
   },
 
-  emptyText: {
+  texteVide: {
     color: "#666",
     fontSize: 16,
   },
@@ -457,40 +491,38 @@ const styles = StyleSheet.create({
     maxHeight: 420,
   },
 
-  activityCard: {
+  blocActivite: {
     backgroundColor: Couleurs.primary,
     padding: 14,
     borderRadius: 18,
     marginBottom: 12,
-
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-
     elevation: 4,
   },
 
-  activityName: {
+  activiteNom: {
     fontSize: 19,
     fontWeight: "700",
     color: Couleurs.darkText,
     marginBottom: 5,
   },
 
-  activityDate: {
+  activiteDate: {
     fontSize: 15,
     color: "#444",
     textTransform: "capitalize",
   },
 
-  activityDuration: {
+  activiteDuree: {
     fontSize: 14,
     color: "#666",
     marginTop: 4,
   },
 
-  manageButton: {
+  boutonGestion: {
     marginTop: 20,
     backgroundColor: Couleurs.primary,
     paddingVertical: 16,
@@ -505,24 +537,24 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
 
-  manageButtonText: {
+  texteBoutonGestion: {
     color: "white",
     fontSize: 18,
     fontWeight: "700",
   },
 
-  modalRoot: {
+  conteneurModale: {
     flex: 1,
     justifyContent: "flex-end",
   },
 
-  backdrop: {
+  fondAssombri: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.28)",
   },
-
-  sheet: {
-    height: SCREEN_HEIGHT * 0.78,
+ 
+  panneau: {
+    height: ECRAN_HAUTEUR * 0.78,
     backgroundColor: "#fff",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
@@ -530,43 +562,43 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 
-  containerMenuActivite: {
+  conteneurMenuGestion: {
     flex: 1,
     gap: 18,
   },
 
-  menuHeader: {
+  enteteMenuGestion: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
 
-  textMenuActivite: {
+  titreMenuGestion: {
     fontSize: 24,
     fontWeight: "700",
     color: Couleurs.darkText,
   },
 
-  closeButton: {
+  boutonFermer: {
     backgroundColor: "#eee",
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 12,
   },
 
-  closeButtonText: {
+  texteBoutonFermer: {
     fontSize: 14,
     color: Couleurs.darkText,
     fontWeight: "600",
   },
 
-  inputContainer: {
+  conteneurEntree: {
     backgroundColor: "#f6f6f6",
     borderRadius: 18,
     padding: 15,
   },
 
-  spinnerContainer: {
+  conteneurSpinner: {
   backgroundColor: "#f6f6f6",
   borderRadius: 18,
   paddingVertical: 8,
@@ -576,20 +608,20 @@ const styles = StyleSheet.create({
   justifyContent: "center",
   },
 
-  durationBox: {
+  dureeBox: {
     backgroundColor: "#f6f6f6",
     borderRadius: 18,
     padding: 15,
   },
 
-  label: {
+  titreChamp: {
     fontSize: 18,
     fontWeight: "600",
     color: Couleurs.darkText,
     marginBottom: 10,
   },
 
-  textInput: {
+  champTexte: {
     backgroundColor: "white",
     borderRadius: 12,
     padding: 12,
@@ -599,7 +631,7 @@ const styles = StyleSheet.create({
     color: Couleurs.darkText,
   },
 
-  textInputDuree: {
+  champDuree: {
     backgroundColor: "white",
     borderRadius: 12,
     width: 70,
@@ -610,7 +642,7 @@ const styles = StyleSheet.create({
     color: Couleurs.darkText,
   },
 
-  containerSelectionDuree: {
+  conteneurSelectionDuree: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -618,19 +650,19 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
 
-  durationText: {
+  texteDuree: {
     fontSize: 16,
     color: Couleurs.darkText,
   },
 
-  containerBoutonAjouter: {
+  conteneurBoutons: {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 12,
     marginTop: 10,
   },
 
-  addButton: {
+  boutonAjouter: {
     flex: 1,
     backgroundColor: Couleurs.primary,
     paddingVertical: 14,
@@ -638,13 +670,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  addButtonText: {
+  texteBoutonAjouter: {
     color: "white",
     fontWeight: "700",
     fontSize: 16,
   },
 
-  deleteButton: {
+  boutonEffacer: {
     flex: 1,
     backgroundColor: "#d9534f",
     paddingVertical: 14,
@@ -652,9 +684,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  deleteButtonText: {
+  texteBoutonEffacer: {
     color: "white",
     fontWeight: "700",
     fontSize: 16,
   },
+
+  enteteActivite: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
 });

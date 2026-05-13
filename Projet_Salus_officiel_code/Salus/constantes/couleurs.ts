@@ -1,3 +1,4 @@
+// pour faciliter les changements des couleurs principales de l'appli
 const Couleurs = {
   background: "#a39abd",
   primary: "#c9c1e1",

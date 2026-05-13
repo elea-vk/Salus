@@ -7,28 +7,29 @@ import Couleurs from "../constantes/couleurs";
 
 export default function Index() {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.conteneur}>
 
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.title}>⊱ SALUS ⊰</Text>
+      {/* ENTÊTE */}
+      <View style={styles.entete}>
+        <Text style={styles.titre}>⊱ SALUS ⊰</Text>
 
         <View style={styles.diviseur} />
       </View>
 
-      {/* CATEGORIES */}
-      <View style={styles.categoriesContainer}>
+      {/* CATÉGORIES */}
+      <View style={styles.conteneurCategories}>
 
         {/* SECTION FITNESS */}
-        <View style={styles.categoryColumn}>
+        <View style={styles.colonneCategorie}>
 
-          <Text style={styles.categoryTitle}>
+          <Text style={styles.titreCategorie}>
             FITNESS
           </Text>
 
+          {/* bouton page musculation */}
           <Pressable
             style={({ pressed }) => [
-              styles.fitnessCard,
+              styles.carteFitness,
               {
                 transform: [{ scale: pressed ? 0.96 : 1 }],
                 opacity: pressed ? 0.85 : 1,
@@ -42,14 +43,15 @@ export default function Index() {
               color={Couleurs.primary}
             />
 
-            <Text style={styles.fitnessText}>
+            <Text style={styles.texteFitness}>
               Musculation
             </Text>
           </Pressable>
 
+          {/* bouton page alimentation */}
           <Pressable
             style={({ pressed }) => [
-              styles.fitnessCard,
+              styles.carteFitness,
               {
                 transform: [{ scale: pressed ? 0.96 : 1 }],
                 opacity: pressed ? 0.85 : 1,
@@ -63,14 +65,15 @@ export default function Index() {
               color={Couleurs.primary}
             />
 
-            <Text style={styles.fitnessText}>
+            <Text style={styles.texteFitness}>
               Alimentation
             </Text>
           </Pressable>
 
+          {/* bouton page poids*/}
           <Pressable
             style={({ pressed }) => [
-              styles.fitnessCard,
+              styles.carteFitness,
               {
                 transform: [{ scale: pressed ? 0.96 : 1 }],
                 opacity: pressed ? 0.85 : 1,
@@ -84,7 +87,7 @@ export default function Index() {
               color={Couleurs.primary}
             />
 
-            <Text style={styles.fitnessText}>
+            <Text style={styles.texteFitness}>
               Poids
             </Text>
           </Pressable>
@@ -92,15 +95,15 @@ export default function Index() {
         </View>
 
         {/* SECTION BIEN-ÊTRE */}
-        <View style={styles.categoryColumn}>
+        <View style={styles.colonneCategorie}>
 
-          <Text style={styles.categoryTitle}>
+          <Text style={styles.titreCategorie}>
             BIEN-ÊTRE
           </Text>
-
+          {/* bouton page activités */}
           <Pressable
             style={({ pressed }) => [
-              styles.card,
+              styles.carteBienEtre,
               {
                 transform: [{ scale: pressed ? 0.96 : 1 }],
                 opacity: pressed ? 0.85 : 1,
@@ -114,14 +117,15 @@ export default function Index() {
               color={Couleurs.secondary}
             />
 
-            <Text style={styles.cardText}>
+            <Text style={styles.texteBienEtre}>
               Activités
             </Text>
           </Pressable>
 
+          {/* bouton page sommeil */}
           <Pressable
             style={({ pressed }) => [
-              styles.card,
+              styles.carteBienEtre,
               {
                 transform: [{ scale: pressed ? 0.96 : 1 }],
                 opacity: pressed ? 0.85 : 1,
@@ -135,14 +139,15 @@ export default function Index() {
               color={Couleurs.secondary}
             />
 
-            <Text style={styles.cardText}>
+            <Text style={styles.texteBienEtre}>
               Sommeil
             </Text>
           </Pressable>
 
+          {/* bouton page habitude */}
           <Pressable
             style={({ pressed }) => [
-              styles.card,
+              styles.carteBienEtre,
               {
                 transform: [{ scale: pressed ? 0.96 : 1 }],
                 opacity: pressed ? 0.85 : 1,
@@ -156,7 +161,7 @@ export default function Index() {
               color={Couleurs.secondary}
             />
 
-            <Text style={styles.cardText}>
+            <Text style={styles.texteBienEtre}>
               Habitudes
             </Text>
           </Pressable>
@@ -167,10 +172,10 @@ export default function Index() {
 
       <View style={styles.diviseur} />
 
-      {/* PROFILE BAR */}
+      {/* BARRE DE LA SECTION PROFIL */}
       <Pressable
         style={({ pressed }) => [
-          styles.profileBar,
+          styles.barreProfil,
           {
             transform: [{ scale: pressed ? 0.98 : 1 }],
             opacity: pressed ? 0.9 : 1,
@@ -178,7 +183,7 @@ export default function Index() {
         ]}
         onPress={() => router.push("/utilisateur")}
       >
-        <Text style={styles.profileText}>
+        <Text style={styles.texteProfil}>
           Gérer le profil
         </Text>
 
@@ -194,7 +199,7 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  conteneur: {
     flex: 1,
     backgroundColor: Couleurs.background,
     paddingHorizontal: 20,
@@ -202,33 +207,31 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  // HEADER
-  header: {
+  entete: {
     alignItems: "center",
     marginTop: 10,
   },
 
-  title: {
+  titre: {
     fontSize: 38,
     fontWeight: "bold",
     color: Couleurs.darkText,
     letterSpacing: 2,
   },
 
-  // CATEGORIES
-  categoriesContainer: {
+  conteneurCategories: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginTop: 10,
   },
 
-  categoryColumn: {
+  colonneCategorie: {
     width: "47%",
     gap: 15,
   },
 
-  categoryTitle: {
+  titreCategorie: {
     fontSize: 22,
     fontWeight: "700",
     color: Couleurs.darkText,
@@ -244,82 +247,67 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
 
-  // WHITE CARDS
-  card: {
+  carteBienEtre: {
     height: 145,
     backgroundColor: "white",
     borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
-
     borderWidth: 1.5,
     borderColor: "#ececec",
-
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 10,
-
     elevation: 12,
   },
 
-  cardText: {
+  texteBienEtre: {
     marginTop: 12,
     fontSize: 16,
     fontWeight: "700",
     color: "#000",
   },
 
-  // FITNESS CARDS
-  fitnessCard: {
+  carteFitness: {
     height: 145,
     backgroundColor: "#1f1f1f",
     borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
-
     borderWidth: 1,
     borderColor: "#3a3a3a",
-
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.28,
     shadowRadius: 12,
-
     elevation: 14,
   },
 
-  fitnessText: {
+  texteFitness: {
     marginTop: 12,
     fontSize: 16,
     fontWeight: "700",
     color: "white",
   },
 
-  // PROFILE BAR
-  profileBar: {
+  barreProfil: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-
     backgroundColor: Couleurs.primary,
-
     paddingVertical: 18,
     paddingHorizontal: 22,
-
     borderRadius: 24,
-
     marginBottom: 10,
-
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
-
     elevation: 12,
   },
 
-  profileText: {
+  texteProfil: {
     fontSize: 17,
     fontWeight: "700",
     color: Couleurs.darkText,

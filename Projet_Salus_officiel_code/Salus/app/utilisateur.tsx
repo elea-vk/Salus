@@ -366,7 +366,7 @@ boiteSpinner: {
   label: {
     fontSize: 16,
     fontWeight: "600",
-    color : Couleurs.secondary
+    color : Couleurs.darkText
   },
 
   icone: {
@@ -425,6 +425,6 @@ boiteSpinner: {
     backgroundColor: Couleurs.secondary,
     width: "100%",
     borderRadius: 10,
-    marginBottom: 18,
+    marginBottom: 30,
   },
 })
