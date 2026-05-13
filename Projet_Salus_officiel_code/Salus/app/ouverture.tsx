@@ -17,21 +17,21 @@ export default function Ouverture() {
   const gererSuite = async () => {
     if (!db) return;
 
-    const utilisateur = await getUtilisateur(db, 1);
+    const utilisateur = await getUtilisateur(db, 1); //vérifier s'il existe un utilisateur sur le telphone
 
     if (utilisateur?.id || skipInscription) {
-      router.replace("/accueil");
+      router.replace("/accueil"); //normalement si un utilisateur est detecté ou si la variable skip inscription est vraie on va directement sur la page d'accueil
     } else {
-      router.replace("/accueil");
+      router.replace("/accueil"); //sinon ça devrait aller vers une page inscription (pas créee ici)
     }
   };
 
   const devUtilisateur = async () => {
     if (!db) return;
 
-    let utilisateur = await getUtilisateur(db, 1);
+    let utilisateur = await getUtilisateur(db, 1); //on récupère un profil developpeur déjà crée
 
-    if (!utilisateur) {
+    if (!utilisateur) { //sinon on crée un profil developpeur automatiquement
       await ajouterUtilisateur(
         db,
         "Dev",
@@ -42,7 +42,7 @@ export default function Ouverture() {
       utilisateur = await getUtilisateur(db, 1);
     }
 
-    router.replace("/accueil");
+    router.replace("/accueil"); //on va à la page d'accueil
   };
 
   // OUVERTURE DE LA BASE DE DONNÉES
