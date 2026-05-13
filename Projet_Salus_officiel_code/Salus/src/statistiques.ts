@@ -1,9 +1,9 @@
-import { ajouterNuit, initDatabase, recupererToutesNuits, supprimerToutesNuits } from "@/data/dataAPP";
+import { initDatabase, recupererToutesNuits} from "@/data/dataAPP";
 
 import { getDay, getMonth, getYear } from "date-fns";
-import { DataPoint } from "./DataPoint";
+import {NuitDeSommeil } from "./NuitDeSommeil";
 
-   const aujourdhui:Date=new Date(Date.now());
+   const aujourdhui:Date=new Date(Date.now()); 
    const anneeEnCours = new Date().getFullYear();
    const moisActuel = new Date().getMonth();
 
@@ -14,21 +14,16 @@ export class Statistique{
     donnees:any[]=[];
     
 
-    constructor(){
-        
-        
-
-
-
-    }
-    async ouvrirDataBase(){
+    
+    async ouvrirDataBase(){ //méthode qui ouvre la database
         
         this.dataBase= await initDatabase() ;
         
         await this.recupererDonnees(this.dataBase);
 
     }
-    async recupererDonnees (db:any){
+
+    async recupererDonnees (db:any){ //méthode qui récupère les données sur le sommeil
         const toutesNuits = await recupererToutesNuits (db)
             
             
@@ -42,20 +37,16 @@ export class Statistique{
                 heuresSommeil: item.heuresSommeil
     
         }))
-        
-            
-            
+                 
     }
-    public async calculerMoyenneHeuresSommeilIntervalle(intervalle:string):Promise<number>{
+    //méthode qui calcule la moyenne d'heures de sommeil selon l'intervalle choisie 
+    public async calculerMoyenneHeuresSommeilIntervalle(intervalle:string):Promise<number>{ 
         await this.ouvrirDataBase();
         
-        
-
+    
         let index:number=0; 
         let moyenne:number=0;
         
-
-
         switch(intervalle){ 
         case "Annuel":
             
@@ -87,7 +78,7 @@ export class Statistique{
             }
             
         break;
-        case "Hebdomadaire": //calcule pour les 7 derniers jours d'entrés, pas la semaine exacte
+        case "Hebdomadaire": //calcule pour les 7 dernières nuits entrées, pas pour la semaine exacte
           for (let i=0; i< Math.min(7,this.donnees.length); i++) {
             const nuit = this.donnees[this.donnees.length-i-1];
                 if (nuit?.heuresSommeil != null) {
@@ -102,14 +93,13 @@ export class Statistique{
 
         return Math.round(((moyenne/index)*10))/10;
     }
-    public async TrierTableauDonnees(intervalle:string): Promise<DataPoint[]>{
+    //méthode qui retourne un tableau trié selon l'intervalle choisie
+    public async TrierTableauDonnees(intervalle:string): Promise<NuitDeSommeil[]>{
         await this.ouvrirDataBase();
        
 
-        const tableau: DataPoint[] = [];
+        const tableau: NuitDeSommeil[] = [];
        
-
-
 
         switch(intervalle){
             case "Annuel":
@@ -176,9 +166,5 @@ export class Statistique{
         return tableau;
 
     }
-
-
-
-    
     
 }

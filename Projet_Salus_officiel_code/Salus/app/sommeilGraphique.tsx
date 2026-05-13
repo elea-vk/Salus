@@ -8,7 +8,7 @@ import { Statistique } from "@/src/statistiques";
 import { TouchEventType } from "react-native-gesture-handler/lib/typescript/web/interfaces";
 import Couleurs from "@/constantes/couleurs";
 import { Picker } from '@react-native-picker/picker';
-import { DataPoint } from "@/src/DataPoint";
+import { NuitDeSommeil } from "@/src/NuitDeSommeil";
 
 
 
@@ -16,12 +16,12 @@ import { DataPoint } from "@/src/DataPoint";
 
 //set des données plus méthodes pour utilisateur peut entrer des données
 const SommeilGraphique = () => {
-    //const [value,setValue] = useState ("")
+
     const [db, setDb] = useState<any>(null);
-    const [donnee, setDonnee] = useState <DataPoint[]>([]); ;
+    const [donnee, setDonnee] = useState <NuitDeSommeil[]>([]); ;
     const [intervalle,setIntervalle]=useState("");
     
-    const stats=new Statistique();
+    const stats=new Statistique(); 
     let [moyenne,setMoyenne] = useState <number | null>(null);
     
     
@@ -38,28 +38,30 @@ const SommeilGraphique = () => {
           setMoyenne(data);});
         }
         init()
-      },[intervalle]) //ouverture de la base de données et récupération des données
+      },[intervalle]) //ouverture de la base de données et récupération des données triées selon l'intervalle choisi
 
     
     
      
-     //récupération des données et ytransformation pour affichage sur l'axe x
+     
   
     return (
-        <View style = {styles.container}>
+        <View style = {styles.container}> 
             <Text style = {styles.titre}> Évolution de votre sommeil</Text>
             
-       <Picker
+         <Picker //Sélection de l'intervalle du graphique (Mensuel, annuel, 7 dernières entrés)
             selectedValue={intervalle}
              onValueChange={(itemValue) => setIntervalle(itemValue)}
-            style={{ width: 200 }}
-            >
+            style={{ width: 200 }}>
             <Picker.Item label="Mensuel" value="Mensuel" />
             <Picker.Item label="Annuel" value="Annuel" />
             <Picker.Item label="7 derniers jours" value="Hebdomadaire" />
-        </Picker>
-        <Text style={styles.texte}>Sommeil moyen : {intervalle}</Text>
-        <LineChart
+         </Picker>
+         
+        
+         <Text style={styles.texte}>Sommeil moyen : {intervalle}</Text> 
+
+         <LineChart // composante qui trace le graphique en fonction de l'intervalle
             color1={Couleurs.secondary}
             dataPointsColor1={Couleurs.darkText}
             data={donnee}
@@ -77,17 +79,17 @@ const SommeilGraphique = () => {
             showReferenceLine1
             referenceLine1Position={moyenne !== null ? moyenne : 0}
             referenceLine1Config={{color:Couleurs.darkText,thickness:3,labelText:"Moyenne", labelTextStyle:styles.texte,dashWidth:Dimensions.get("screen").width-10}}/>
-            
-            
-        
-        
 
-        <View>
-        <Text style={styles.texte}>MOYENNES</Text> 
-        <Text style={styles.texte}>➛ annuelle: {stats.calculerMoyenneHeuresSommeilIntervalle("Annuel")}h </Text> 
-        <Text style={styles.texte}>➛ mensuelle: {stats.calculerMoyenneHeuresSommeilIntervalle("Mensuel")}h</Text>
-        <Text style = {styles.texte}>➛ 7 dernières entrées: {stats.calculerMoyenneHeuresSommeilIntervalle("Hebdomadaire")}h</Text>
-        </View>
+
+            
+          <View>  
+            <Text style={styles.texte}>MOYENNES</Text> 
+            <Text style={styles.texte}>➛ annuelle: {stats.calculerMoyenneHeuresSommeilIntervalle("Annuel")}h </Text> 
+            <Text style={styles.texte}>➛ mensuelle: {stats.calculerMoyenneHeuresSommeilIntervalle("Mensuel")}h</Text>
+            <Text style = {styles.texte}>➛ 7 dernières entrées: {stats.calculerMoyenneHeuresSommeilIntervalle("Hebdomadaire")}h</Text>
+          </View>
+
+
         </View>
         
     );
